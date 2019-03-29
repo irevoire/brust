@@ -44,6 +44,7 @@ fn main() {
                 c.individual_command_tip("🦀 Bonjour 🦀")
                     .max_levenshtein_distance(5)
                     .command_not_found_text("Could not find: `{}`.")
+                    .striked_commands_tip(None)
             })
             .command("nul", |c| c.cmd(commands::blague::nul))
             .command("mdr", |c| c.cmd(commands::blague::mdr))

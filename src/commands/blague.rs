@@ -102,7 +102,7 @@ fn update_score(ctx: &mut Context, msg: &Message, args: &mut Args, update: impl 
 }
 
 fn save_score(ctx: &mut Context) {
-    let mut data = ctx.data.lock();
+    let data = ctx.data.lock();
     let scores = data.get::<Score>().expect("Expected Score in ShareMap.");
     let filename = data
         .get::<FileScore>()
@@ -110,7 +110,7 @@ fn save_score(ctx: &mut Context) {
 
     let mut buffer = File::create(filename).unwrap();
     for (k, v) in scores {
-        if let Err(e) = buffer.write(format!("{} {}", k, v).as_bytes()) {
+        if let Err(e) = buffer.write(format!("{} {}\n", k, v).as_bytes()) {
             println!("Can't save the score: {}", e);
         }
     }

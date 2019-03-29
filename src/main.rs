@@ -19,10 +19,10 @@ impl EventHandler for Handler {
     }
 }
 
-const DISCORD_TOKEN: &str = "LALALA";
-
 fn main() {
-    let token = DISCORD_TOKEN;
+    kankyo::load().expect("Failed to load .env file");
+
+    let token = env::var("DISCORD_TOKEN").expect("Expected a token in the environment");
     let mut client = Client::new(&token, Handler).expect("Err creating client");
     let filename = env::args().skip(1).next().unwrap();
 

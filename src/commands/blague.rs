@@ -1,4 +1,8 @@
-use serenity::prelude::TypeMapKey;
+use serenity::{
+    framework::standard::Args,
+    model::channel::Message,
+    prelude::{Context, TypeMapKey},
+};
 use std::fmt::Write;
 use std::{collections::HashMap, fs::File, io::Read, path::Path};
 
@@ -77,19 +81,19 @@ fn get_user_id(user: String) -> Result<String, String> {
     };
 }
 
-command!(mdr(ctx, msg, args) {
+fn update_score(ctx: &mut Context, msg: &Message, args: &mut Args, update: impl Fn(i64) -> i64) {
     if args.len() != 1 {
         let _ = msg.reply("Donne moi **un** nom !");
         let _ = msg.react('❎');
-        return Ok(());
+        return;
     }
     let user: String = args.iter().next().unwrap().unwrap();
     let user = match get_user_id(user) {
         Err(e) => {
             let _ = msg.reply(&e);
             let _ = msg.react('❎');
-            return Ok(());
-        },
+            return;
+        }
         Ok(u) => u,
     };
     let mut data = ctx.data.lock();
@@ -97,30 +101,17 @@ command!(mdr(ctx, msg, args) {
         .get_mut::<Score>()
         .expect("Expected Score in ShareMap.");
     let entry = score.entry(user.to_string()).or_insert(0);
-    *entry += 1;
+    *entry = update(*entry);
+
     let _ = msg.react('👌');
+}
+
+command!(mdr(ctx, msg, args) {
+    update_score(ctx, msg, &mut args, |n| n + 1);
+    return Ok(());
 });
 
 command!(nul(ctx, msg, args) {
-    if args.len() != 1 {
-        let _ = msg.reply("Donne moi **un** nom !");
-        let _ = msg.react('❎');
-        return Ok(());
-    }
-    let user: String = args.iter().next().unwrap().unwrap();
-    let user = match get_user_id(user) {
-        Err(e) => {
-            let _ = msg.reply(&e);
-            let _ = msg.react('❎');
-            return Ok(());
-        },
-        Ok(u) => u,
-    };
-    let mut data = ctx.data.lock();
-    let score = data
-        .get_mut::<Score>()
-        .expect("Expected Score in ShareMap.");
-    let entry = score.entry(user.to_string()).or_insert(0);
-    *entry -= 1;
-    let _ = msg.react('👌');
+    update_score(ctx, msg, &mut args, |n| n - 1);
+    return Ok(());
 });

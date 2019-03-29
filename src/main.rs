@@ -24,7 +24,7 @@ fn main() {
 
     let token = env::var("DISCORD_TOKEN").expect("Expected a token in the environment");
     let mut client = Client::new(&token, Handler).expect("Err creating client");
-    let filename = env::args().skip(1).next().unwrap();
+    let filename = env::var("SCORE_FILE").expect("Expected a file to save the score");
 
     {
         let mut data = client.data.lock();

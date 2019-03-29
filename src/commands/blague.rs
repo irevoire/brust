@@ -1,6 +1,42 @@
-use crate::Score;
+use serenity::prelude::TypeMapKey;
 use std::fmt::Write;
+use std::{collections::HashMap, fs::File, io::Read, path::Path};
 
+pub struct Score;
+
+impl TypeMapKey for Score {
+    type Value = HashMap<String, i64>;
+}
+
+pub fn init() -> HashMap<String, i64> {
+    let mut hash: HashMap<String, i64> = HashMap::default();
+    let path = Path::new("/tmp/hello.txt");
+
+    let mut file = match File::open(&path) {
+        Err(why) => panic!("couldn't open file {}", why),
+        Ok(file) => file,
+    };
+
+    let mut s = String::new();
+    file.read_to_string(&mut s).unwrap();
+
+    for line in s.split("\n") {
+        if line == "" {
+            break;
+        }
+        let mut split = line.split(" ");
+        let name = split
+            .next()
+            .unwrap_or_else(|| panic!(format!("can't parse this line: {}", line)));
+        let nb: i64 = split
+            .next()
+            .unwrap_or_else(|| panic!(format!("need a score: {}", line)))
+            .parse()
+            .unwrap_or_else(|_| panic!(format!("can't parse this score: {}", line)));
+        hash.insert(name.to_string(), nb);
+    }
+    return hash;
+}
 command!(blague(ctx, msg, _args) {
     let mut res = "Blagues :\n".to_string();
 

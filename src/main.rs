@@ -1,14 +1,12 @@
 #[macro_use]
 extern crate serenity;
 
-use std::{collections::HashMap, env, fmt::Write, sync::Arc};
+use std::{collections::HashMap, fmt::Write, fs::File, io::Read, path::Path, sync::Arc};
 
 use serenity::prelude::*;
 use serenity::{
     client::bridge::gateway::{ShardId, ShardManager},
-    framework::standard::{
-        help_commands, Args, CommandOptions, DispatchError, HelpBehaviour, StandardFramework,
-    },
+    framework::standard::{help_commands, DispatchError, StandardFramework},
     model::{channel::Message, gateway::Ready, Permissions},
     prelude::*,
     utils::{content_safe, ContentSafeOptions},
@@ -26,6 +24,12 @@ impl TypeMapKey for CommandCounter {
     type Value = HashMap<String, u64>;
 }
 
+struct Score;
+
+impl TypeMapKey for Score {
+    type Value = HashMap<String, i64>;
+}
+
 struct Handler;
 
 impl EventHandler for Handler {
@@ -36,13 +40,45 @@ impl EventHandler for Handler {
 
 const DISCORD_TOKEN: &str = "LALALA";
 
+fn parse() -> HashMap<String, i64> {
+    let mut hash: HashMap<String, i64> = HashMap::default();
+    let path = Path::new("/tmp/hello.txt");
+
+    let mut file = match File::open(&path) {
+        Err(why) => panic!("couldn't open file {}", why),
+        Ok(file) => file,
+    };
+
+    let mut s = String::new();
+    file.read_to_string(&mut s).unwrap();
+
+    for line in s.split("\n") {
+        if line == "" {
+            break;
+        }
+        let mut split = line.split(" ");
+        let name = split
+            .next()
+            .unwrap_or_else(|| panic!(format!("can't parse this line: {}", line)));
+        let nb: i64 = split
+            .next()
+            .unwrap_or_else(|| panic!(format!("need a score: {}", line)))
+            .parse()
+            .unwrap_or_else(|_| panic!(format!("can't parse this score: {}", line)));
+        hash.insert(name.to_string(), nb);
+    }
+    return hash;
+}
+
 fn main() {
+    let mut score = parse();
     let token = DISCORD_TOKEN;
     let mut client = Client::new(&token, Handler).expect("Err creating client");
 
     {
         let mut data = client.data.lock();
         data.insert::<CommandCounter>(HashMap::default());
+        data.insert::<Score>(score);
         data.insert::<ShardManagerContainer>(Arc::clone(&client.shard_manager));
     }
 
@@ -51,7 +87,7 @@ fn main() {
             .configure(|c| {
                 c.allow_whitespace(true)
                     .on_mention(true)
-                    .prefix("~")
+                    .prefix("!")
                     //.prefix_only_cmd(help)
                     .delimiters(vec![", ", ",", " "])
             })
@@ -74,8 +110,6 @@ fn main() {
                 Ok(()) => println!("Processed command '{}'", command_name),
                 Err(why) => println!("Command '{}' returned error {:?}", command_name, why),
             })
-            //.unrecognised_command(help)
-            //.message_without_command(help)
             .on_dispatch_error(|_ctx, msg, error| {
                 if let DispatchError::RateLimited(seconds) = error {
                     let _ = msg
@@ -90,9 +124,10 @@ fn main() {
                     .command_not_found_text("Could not find: `{}`.")
             })
             .command("commands", |c| c.cmd(commands))
-            .command("say", |c| c.cmd(say))
             .command("latency", |c| c.cmd(latency))
-            .command("nul", |c| c.cmd(nul)),
+            .command("nul", |c| c.cmd(nul))
+            .command("mdr", |c| c.cmd(nul))
+            .command("blague", |c| c.cmd(blague)),
     );
 
     if let Err(why) = client.start() {
@@ -100,63 +135,93 @@ fn main() {
     }
 }
 
-/*
-fn add(user: String) {
-    let path = Path::new("/tmp/hello.txt");
+command!(blague(ctx, msg, args) {
+    let mut res = "Blagues :\n".to_string();
 
-    let mut file = match File::open(&path) {
-        Err(why) => panic!("couldn't open file {}", why.description()),
-        Ok(file) => file,
-    };
+    let mut data = ctx.data.lock();
+    let scores = data
+        .get::<Score>()
+        .expect("Expected Score in ShareMap.");
 
-    let mut s = String::new();
-    match file.read_to_string(&mut s) {
-        Err(why) => panic!("couldn't read {}: {}", display, why.description()),
-        Ok(_) => print!("{} contains:\n{}", display, s),
+    for (k, v) in scores {
+        let _ = write!(res, "- {}: {}\n", k, v);
     }
-    for line in s.split("\n") {
-        if line.starts_with(user) {
-            let number = line.split(" ").last();
-            let nb: u64 = number.parse();
-            number = format!("{}", nb + 1);
-        }
-    }
-    println!("{}", s);
-}
-*/
 
-command!(nul(ctx, msg, args) {
-    if args.len() != 1 {
-        msg.reply("Donne moi **un** nom !");
-        return Ok(());
+    if let Err(why) = msg.channel_id.say(&res) {
+        println!("Error sending message: {:?}", why);
     }
-    let user: String = args.iter().next().unwrap().unwrap();
+});
+
+fn get_user_id(user: String) -> Result<String, String> {
+    println!("user: {}", user);
+    let mut start = 0;
     if !user.starts_with("<@") || !user.ends_with(">") {
-        msg.reply("Le nom est malformé !");
-        return Ok(());
+        return Err("Le nom est mal formé !".to_string());
+    }
+    if user.starts_with("<@!") {
+        start = 3
+    } else {
+        start = 2
     }
 
-    let user_id: u64 = match user[2..user.len() - 1].parse::<u64>() {
-        Err(_) => {
-            msg.reply("Le nom est malformé !");
-            return Ok(());
-        },
+    let user_id: u64 = match user[start..user.len() - 1].parse() {
+        Err(_) => return Err("Le nom est mal formé !".to_string()),
         Ok(n) => n,
     };
 
-    // println!("{:?}", ctx);
     let user = serenity::model::id::UserId(user_id);
-    let user = match user.get() {
-        Err(_) => {
-            msg.reply("Utilisateur inconnu");
+    return match user.to_user() {
+        Err(_) => Err("Utilisateur inconnu".to_string()),
+        Ok(u) => Ok(u.to_string()),
+    };
+}
+
+command!(mdr(ctx, msg, args) {
+    if args.len() != 1 {
+        let _ = msg.reply("Donne moi **un** nom !");
+        let _ = msg.react('❎');
+        return Ok(());
+    }
+    let user: String = args.iter().next().unwrap().unwrap();
+    let user = match get_user_id(user) {
+        Err(e) => {
+            let _ = msg.reply(&e);
+            let _ = msg.react('❎');
             return Ok(());
         },
         Ok(u) => u,
     };
+    let mut data = ctx.data.lock();
+    let score = data
+        .get_mut::<Score>()
+        .expect("Expected Score in ShareMap.");
+    let entry = score.entry(user.to_string()).or_insert(0);
+    *entry += 1;
+    let _ = msg.react('👌');
+});
 
-    if let Err(why) = msg.channel_id.say(format!("Shame {}!", user)) {
-        println!("Error sending message: {:?}", why);
+command!(nul(ctx, msg, args) {
+    if args.len() != 1 {
+        let _ = msg.reply("Donne moi **un** nom !");
+        let _ = msg.react('❎');
+        return Ok(());
     }
+    let user: String = args.iter().next().unwrap().unwrap();
+    let user = match get_user_id(user) {
+        Err(e) => {
+            let _ = msg.reply(&e);
+            let _ = msg.react('❎');
+            return Ok(());
+        },
+        Ok(u) => u,
+    };
+    let mut data = ctx.data.lock();
+    let score = data
+        .get_mut::<Score>()
+        .expect("Expected Score in ShareMap.");
+    let entry = score.entry(user.to_string()).or_insert(0);
+    *entry -= 1;
+    let _ = msg.react('👌');
 });
 
 command!(commands(ctx, msg, _args) {
@@ -170,24 +235,6 @@ command!(commands(ctx, msg, _args) {
     }
 
     if let Err(why) = msg.channel_id.say(&contents) {
-        println!("Error sending message: {:?}", why);
-    }
-});
-
-command!(say(_ctx, msg, args) {
-    let mut settings = if let Some(guild_id) = msg.guild_id {
-        ContentSafeOptions::default()
-            .clean_channel(false)
-            .display_as_member_from(guild_id)
-    } else {
-        ContentSafeOptions::default()
-            .clean_channel(false)
-            .clean_role(false)
-    };
-
-    let mut content = content_safe(&args.full(), &settings);
-
-    if let Err(why) = msg.channel_id.say(&content) {
         println!("Error sending message: {:?}", why);
     }
 });

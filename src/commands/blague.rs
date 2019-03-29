@@ -3,8 +3,7 @@ use serenity::{
     model::channel::Message,
     prelude::{Context, TypeMapKey},
 };
-use std::fmt::Write;
-use std::{collections::HashMap, fs::File, io::Read, path::Path};
+use std::{collections::HashMap, fmt::Write, fs::File, io::Read, path::Path};
 
 pub struct Score;
 
@@ -12,7 +11,7 @@ impl TypeMapKey for Score {
     type Value = HashMap<String, i64>;
 }
 
-pub fn init() -> HashMap<String, i64> {
+pub fn init(filename: String) -> HashMap<String, i64> {
     let mut hash: HashMap<String, i64> = HashMap::default();
     let path = Path::new("/tmp/hello.txt");
 

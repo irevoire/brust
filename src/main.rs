@@ -9,6 +9,8 @@ use serenity::{
     prelude::*,
 };
 
+use std::env;
+
 struct Handler;
 
 impl EventHandler for Handler {
@@ -22,10 +24,11 @@ const DISCORD_TOKEN: &str = "LALALA";
 fn main() {
     let token = DISCORD_TOKEN;
     let mut client = Client::new(&token, Handler).expect("Err creating client");
+    let filename = env::args().skip(1).next().unwrap();
 
     {
         let mut data = client.data.lock();
-        data.insert::<commands::blague::Score>(commands::blague::init());
+        data.insert::<commands::blague::Score>(commands::blague::init(filename));
     }
 
     client.with_framework(

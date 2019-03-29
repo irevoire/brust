@@ -3,13 +3,11 @@ extern crate serenity;
 
 use std::{collections::HashMap, fmt::Write, fs::File, io::Read, path::Path, sync::Arc};
 
-use serenity::prelude::*;
 use serenity::{
     client::bridge::gateway::{ShardId, ShardManager},
     framework::standard::{help_commands, DispatchError, StandardFramework},
-    model::{channel::Message, gateway::Ready, Permissions},
+    model::gateway::Ready,
     prelude::*,
-    utils::{content_safe, ContentSafeOptions},
 };
 
 struct ShardManagerContainer;
@@ -71,7 +69,7 @@ fn parse() -> HashMap<String, i64> {
 }
 
 fn main() {
-    let mut score = parse();
+    let score = parse();
     let token = DISCORD_TOKEN;
     let mut client = Client::new(&token, Handler).expect("Err creating client");
 
@@ -135,7 +133,7 @@ fn main() {
     }
 }
 
-command!(blague(ctx, msg, args) {
+command!(blague(ctx, msg, _args) {
     let mut res = "Blagues :\n".to_string();
 
     let mut data = ctx.data.lock();
@@ -154,7 +152,7 @@ command!(blague(ctx, msg, args) {
 
 fn get_user_id(user: String) -> Result<String, String> {
     println!("user: {}", user);
-    let mut start = 0;
+    let start;
     if !user.starts_with("<@") || !user.ends_with(">") {
         return Err("Le nom est mal formé !".to_string());
     }

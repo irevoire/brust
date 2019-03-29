@@ -28,7 +28,8 @@ fn main() {
 
     {
         let mut data = client.data.lock();
-        data.insert::<commands::blague::Score>(commands::blague::init(filename));
+        data.insert::<commands::blague::Score>(commands::blague::init(&filename));
+        data.insert::<commands::blague::FileScore>(filename);
     }
 
     client.with_framework(

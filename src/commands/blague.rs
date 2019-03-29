@@ -3,7 +3,13 @@ use serenity::{
     model::channel::Message,
     prelude::{Context, TypeMapKey},
 };
-use std::{collections::HashMap, fmt::Write, fs::File, io::Read, path::Path};
+use std::{
+    collections::HashMap,
+    fmt::Write,
+    fs::File,
+    io::{Read, Write as wr},
+    path::Path,
+};
 
 pub struct Score;
 
@@ -11,9 +17,15 @@ impl TypeMapKey for Score {
     type Value = HashMap<String, i64>;
 }
 
-pub fn init(filename: String) -> HashMap<String, i64> {
+pub struct FileScore;
+
+impl TypeMapKey for FileScore {
+    type Value = String;
+}
+
+pub fn init(filename: &String) -> HashMap<String, i64> {
     let mut hash: HashMap<String, i64> = HashMap::default();
-    let path = Path::new("/tmp/hello.txt");
+    let path = Path::new(filename);
 
     let mut file = match File::open(&path) {
         Err(why) => panic!("couldn't open file {}", why),
@@ -40,22 +52,6 @@ pub fn init(filename: String) -> HashMap<String, i64> {
     }
     return hash;
 }
-command!(blague(ctx, msg, _args) {
-    let mut res = "Blagues :\n".to_string();
-
-    let mut data = ctx.data.lock();
-    let scores = data
-        .get::<Score>()
-        .expect("Expected Score in ShareMap.");
-
-    for (k, v) in scores {
-        let _ = write!(res, "- {}: {}\n", k, v);
-    }
-
-    if let Err(why) = msg.channel_id.say(&res) {
-        println!("Error sending message: {:?}", why);
-    }
-});
 
 fn get_user_id(user: String) -> Result<String, String> {
     let start;
@@ -105,12 +101,55 @@ fn update_score(ctx: &mut Context, msg: &Message, args: &mut Args, update: impl 
     let _ = msg.react('👌');
 }
 
+fn save_score(ctx: &mut Context) {
+    let mut data = ctx.data.lock();
+    let scores = data.get::<Score>().expect("Expected Score in ShareMap.");
+    let filename = data
+        .get::<FileScore>()
+        .expect("Expected FileScore in ShareMap.");
+
+    let mut buffer = File::create(filename).unwrap();
+    for (k, v) in scores {
+        if let Err(e) = buffer.write(format!("{} {}", k, v).as_bytes()) {
+            println!("Can't save the score: {}", e);
+        }
+    }
+}
+
 command!(mdr(ctx, msg, args) {
     update_score(ctx, msg, &mut args, |n| n + 1);
+    save_score(ctx);
     return Ok(());
 });
 
 command!(nul(ctx, msg, args) {
     update_score(ctx, msg, &mut args, |n| n - 1);
+    save_score(ctx);
     return Ok(());
+});
+
+command!(blague(ctx, msg, args) {
+    let mut data = ctx.data.lock();
+    let scores = data
+        .get::<Score>()
+        .expect("Expected Score in ShareMap.");
+
+    let mut res = "Blagues :\n".to_string();
+
+    if args.len() >= 1 {
+        for name in args.iter() {
+            let name = get_user_id(name.unwrap()).unwrap_or("".to_string());
+            match scores.get(&name) {
+                Some(v) => write!(res, "- {}: {}\n", name, v).unwrap(),
+                None => (),
+            }
+        }
+    } else {
+        for (k, v) in scores {
+            let _ = write!(res, "- {}: {}\n", k, v);
+        }
+    }
+    if let Err(why) = msg.channel_id.say(&res) {
+        println!("Error sending message: {:?}", why);
+    }
 });

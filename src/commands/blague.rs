@@ -128,6 +128,20 @@ command!(nul(ctx, msg, args) {
     return Ok(());
 });
 
+fn write_score(base: &mut String, name: &String, value: i64) {
+    let _ = write!(base, "- {}: {} ", name, value);
+    let sym = match value {
+        _ if value > 0 => "🔆",
+        _ if value < 0 => "❌",
+        _ => "",
+    };
+    let react: String = std::iter::repeat(sym)
+        .take(value.abs() as usize)
+        .take(10)
+        .collect();
+    let _ = write!(base, "{}\n", react);
+}
+
 command!(blague(ctx, msg, args) {
     let mut data = ctx.data.lock();
     let scores = data
@@ -140,13 +154,13 @@ command!(blague(ctx, msg, args) {
         for name in args.iter() {
             let name = get_user_id(name.unwrap()).unwrap_or("".to_string());
             match scores.get(&name) {
-                Some(v) => write!(res, "- {}: {}\n", name, v).unwrap(),
+                Some(v) => write_score(&mut res, &name, *v),
                 None => (),
             }
         }
     } else {
         for (k, v) in scores {
-            let _ = write!(res, "- {}: {}\n", k, v);
+            write_score(&mut res, &k, *v);
         }
     }
     if let Err(why) = msg.channel_id.say(&res) {

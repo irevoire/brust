@@ -46,9 +46,15 @@ fn main() {
                     .command_not_found_text("Could not find: `{}`.")
                     .striked_commands_tip(None)
             })
-            .command("nul", |c| c.cmd(commands::blague::nul))
-            .command("mdr", |c| c.cmd(commands::blague::mdr))
-            .command("blague", |c| c.cmd(commands::blague::blague)),
+            .group("Tribunal", |g| {
+                g.desc("Commande du tribunal des blagues")
+                    .command("nul", |c| c.cmd(commands::blague::nul).desc("Blague nulle"))
+                    .command("mdr", |c| c.cmd(commands::blague::mdr).desc("Bonne blague"))
+                    .command("blague", |c| {
+                        c.cmd(commands::blague::blague)
+                            .desc("Affiche le score des blagues")
+                    })
+            }),
     );
 
     if let Err(why) = client.start() {

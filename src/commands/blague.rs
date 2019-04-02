@@ -91,6 +91,11 @@ fn update_score(ctx: &mut Context, msg: &Message, args: &mut Args, update: impl 
         }
         Ok(u) => u,
     };
+    if msg.author.to_string() == user {
+        let _ = msg.react('❎');
+        return;
+    }
+
     let mut data = ctx.data.lock();
     let score = data
         .get_mut::<Score>()

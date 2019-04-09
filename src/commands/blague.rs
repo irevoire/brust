@@ -77,33 +77,33 @@ fn get_user_id(user: String) -> Result<String, String> {
 }
 
 fn update_score(ctx: &mut Context, msg: &Message, args: &mut Args, update: impl Fn(i64) -> i64) {
-    if args.len() != 1 {
-        let _ = msg.reply("Donne moi **un** nom !");
-        let _ = msg.react('❎');
-        return;
-    }
-    let user: String = args.iter().next().unwrap().unwrap();
-    let user = match get_user_id(user) {
-        Err(e) => {
-            let _ = msg.reply(&e);
+    let mut fail = false;
+    for name in args.iter() {
+        let name = match get_user_id(name.unwrap()) {
+            Err(_) => {
+                let _ = msg.react('❎');
+                fail = true;
+                continue;
+            }
+            Ok(u) => u,
+        };
+        if msg.author.to_string() == name {
             let _ = msg.react('❎');
-            return;
+            fail = true;
+            continue;
         }
-        Ok(u) => u,
-    };
-    if msg.author.to_string() == user {
-        let _ = msg.react('❎');
-        return;
+
+        let mut data = ctx.data.lock();
+        let score = data
+            .get_mut::<Score>()
+            .expect("Expected Score in ShareMap.");
+        let entry = score.entry(name.to_string()).or_insert(0);
+        *entry = update(*entry);
     }
 
-    let mut data = ctx.data.lock();
-    let score = data
-        .get_mut::<Score>()
-        .expect("Expected Score in ShareMap.");
-    let entry = score.entry(user.to_string()).or_insert(0);
-    *entry = update(*entry);
-
-    let _ = msg.react('👌');
+    if !fail {
+        let _ = msg.react('👌');
+    }
 }
 
 fn save_score(ctx: &mut Context) {

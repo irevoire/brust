@@ -2,6 +2,7 @@
 extern crate serenity;
 
 mod commands;
+mod hook;
 
 use serenity::{
     framework::standard::{help_commands, StandardFramework},
@@ -16,6 +17,7 @@ struct Handler;
 impl EventHandler for Handler {
     fn ready(&self, _: Context, ready: Ready) {
         println!("{} is connected!", ready.user.name);
+        hook::pun::init();
     }
 }
 

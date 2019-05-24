@@ -6,7 +6,7 @@ use std::thread;
 use std::time::Duration;
 
 pub fn init() {
-    let channel = ChannelId(560486862817591296); // tribunal des blagues
+    let channel = ChannelId(467653564936749056); // salon du bot
 
     let mut scheduler = Scheduler::new();
 

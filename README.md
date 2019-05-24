@@ -18,5 +18,5 @@ cargo run --release
 
 ```
 docker build -t brust . # Here brust si the name of the docker image
-docker run -p 8787:8787 -v -v $PWD/config:/brust/config --name brust brust
+docker run -d -v $PWD/config:/brust/config --name brust brust
 ```

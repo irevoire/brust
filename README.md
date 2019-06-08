@@ -14,9 +14,14 @@ cargo build --release
 cargo run --release
 ```
 
-## Dockerize
+## Docker
 
+### Build
 ```
-docker build -t brust . # Here brust si the name of the docker image
-docker run -d -v $PWD/config:/brust/config --name brust brust
+docker build .
+```
+
+### Run
+```
+docker run --restart=always -d -v $PWD/config:/brust/config --name brust -e DISCORD_TOKEN=YOUR_DISCORD_TOKEN brust
 ```

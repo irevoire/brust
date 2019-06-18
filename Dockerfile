@@ -8,8 +8,6 @@ RUN git clone https://github.com/irevoire/brust && \
 
 WORKDIR brust
 
-EXPOSE 8787
-
 VOLUME /brust/config
 
 CMD ./brust

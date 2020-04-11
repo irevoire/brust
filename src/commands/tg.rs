@@ -11,7 +11,7 @@ pub struct Tg;
 
 // we are going to store the insults in the first vector and random index in the second
 impl TypeMapKey for Tg {
-    type Value = (Vec<&'static str>, Vec<usize>);
+    type Value = Vec<&'static str>;
 }
 
 #[command]
@@ -24,22 +24,19 @@ pub fn tg(ctx: &mut Context, msg: &Message, _args: Args) -> CommandResult {
         return Ok(());
     }
     let insults = insults.unwrap();
-    let mut index = insults.1.pop();
-    // generate a new list of indexes
-    if index.is_none() {
-        let mut rng = thread_rng();
-        insults.1 = (0..insults.0.len()).collect::<Vec<usize>>();
-        insults.1.shuffle(&mut rng);
-        index = insults.1.pop();
+    let mut insult = insults.pop();
+    if insult.is_none() {
+        *insults = init();
+        insult = insults.pop();
     }
-    let index = index.expect("The insults vector look empty?");
+    let insult = insult.expect("The insults vector look empty?");
 
-    let _ = msg.channel_id.say(&ctx, insults.0[index]);
+    let _ = msg.channel_id.say(&ctx, insult);
     Ok(())
 }
 
-pub fn init() -> (Vec<&'static str>, Vec<usize>) {
-    let insults = vec![
+pub fn init() -> Vec<&'static str> {
+    let mut insults = vec![
         "Va marcher sur des Légos",
         "Gredin",
         "Tête de tétard",
@@ -206,7 +203,6 @@ pub fn init() -> (Vec<&'static str>, Vec<usize>) {
         "Puterelle",
     ];
     let mut rng = thread_rng();
-    let mut indexes = (0..insults.len()).collect::<Vec<usize>>();
-    indexes.shuffle(&mut rng);
-    (insults, indexes)
+    insults.shuffle(&mut rng);
+    insults
 }

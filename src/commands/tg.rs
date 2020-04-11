@@ -65,6 +65,7 @@ pub fn init() -> (Vec<&'static str>, Vec<usize>) {
         "Grosse pute",
         "Petite pute",
         "Trou duc",
+        "Chauve",
         "Syndicaliste",
         "Gilet jaune",
         "Macroniste",

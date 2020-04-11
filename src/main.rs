@@ -1,13 +1,12 @@
 mod commands;
 
-use commands::tg::*;
+use commands::{mock::*, tg::*};
 use serenity::{
     framework::{standard::macros::group, StandardFramework},
-    model::{gateway::Ready},
+    model::gateway::Ready,
     prelude::*,
 };
 use std::env;
-
 
 struct Handler;
 
@@ -18,7 +17,7 @@ impl EventHandler for Handler {
 }
 
 #[group]
-#[commands(tg)]
+#[commands(tg, mock)]
 struct General;
 
 fn main() {

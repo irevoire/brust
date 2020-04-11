@@ -1,1 +1,1 @@
-pub mod blague;
+pub mod tg;

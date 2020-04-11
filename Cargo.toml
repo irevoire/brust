@@ -7,5 +7,5 @@ edition = "2018"
 [dependencies]
 serenity = "*"
 kankyo = "*"
-clokwerk = "*"
 reqwest = "*"
+rand = "*"

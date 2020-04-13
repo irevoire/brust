@@ -2,10 +2,11 @@ use serenity::framework::standard::{macros::command, Args, CommandResult};
 use serenity::{model::channel::Message, prelude::Context};
 
 #[command]
-pub fn mock(ctx: &mut Context, msg: &Message, _args: Args) -> CommandResult {
+pub fn mock(ctx: &mut Context, msg: &Message, args: Args) -> CommandResult {
+    let message = crate::utils::find_relative_content(ctx, msg, args)?;
     let mut new = String::new();
     let mut last = false;
-    for c in msg.content.chars().skip("!mock ".chars().count()) {
+    for c in message.chars() {
         if !c.is_alphabetic() {
             new.push(c);
             continue;

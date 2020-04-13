@@ -1,5 +1,6 @@
 mod commands;
 mod imgflip;
+mod utils;
 
 use commands::{mock::*, roasted::*, tg::*};
 use serenity::{

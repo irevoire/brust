@@ -9,7 +9,7 @@ pub fn roasted(ctx: &mut Context, msg: &Message, _args: Args) -> CommandResult {
         .skip("!roasted ".chars().count())
         .collect();
 
-    if let Ok(url) = crate::imgflip::generate_image_url(Some(&message), None, "122616222") {
+    if let Ok(url) = crate::imgflip::generate_image_url(None, Some(&message), "122616222") {
         let _ = msg
             .channel_id
             .send_files(&ctx, vec![url.as_str()], |m| m.content(&msg.author));

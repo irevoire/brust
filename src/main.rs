@@ -1,6 +1,7 @@
 mod commands;
+mod imgflip;
 
-use commands::{mock::*, tg::*};
+use commands::{mock::*, roasted::*, tg::*};
 use serenity::{
     framework::{standard::macros::group, StandardFramework},
     model::gateway::Ready,
@@ -17,7 +18,7 @@ impl EventHandler for Handler {
 }
 
 #[group]
-#[commands(tg, mock)]
+#[commands(tg, mock, roasted)]
 struct General;
 
 fn main() {

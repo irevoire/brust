@@ -1,33 +1,11 @@
 use serenity::framework::standard::{macros::command, Args, CommandResult};
 use serenity::{model::channel::Message, prelude::Context};
-use std::env;
-
-fn get_image_url(text: &str) -> Result<String, Box<dyn std::error::Error>> {
-    let logs = env::var("IMGFLIP")?;
-    let logs: Vec<&str> = logs.splitn(2, ':').collect();
-    let username = logs[0];
-    let password = logs[1];
-
-    let url = format!(
-        "username={}&password={}&template_id=102156234&boxes[0][text]=&boxes[1][text]={}",
-        username, password, text
-    );
-    let resp = ureq::post("https://api.imgflip.com/caption_image")
-        .set("Content-Type", "application/x-www-form-urlencoded")
-        .send_string(&url);
-    let url = &resp.into_json()?["data"]["url"];
-    if let Some(url) = url.as_str() {
-        Ok(url.to_string())
-    } else {
-        Err("Could not as str".into())
-    }
-}
 
 #[command]
 pub fn mock(ctx: &mut Context, msg: &Message, _args: Args) -> CommandResult {
     let mut new = String::new();
     let mut last = false;
-    for c in msg.content.chars().skip("!mock".chars().count()) {
+    for c in msg.content.chars().skip("!mock ".chars().count()) {
         if !c.is_alphabetic() {
             new.push(c);
             continue;
@@ -40,7 +18,7 @@ pub fn mock(ctx: &mut Context, msg: &Message, _args: Args) -> CommandResult {
         last = !last;
     }
 
-    if let Ok(url) = get_image_url(&new) {
+    if let Ok(url) = crate::imgflip::generate_image_url(None, Some(&new), "102156234") {
         let _ = msg
             .channel_id
             .send_files(&ctx, vec![url.as_str()], |m| m.content(&msg.author));

@@ -8,5 +8,5 @@ edition = "2018"
 serenity = "*"
 kankyo = "*"
 rand = "*"
-ureq = { version = "*", features = ["json"] }
+reqwest = { version = "*", features = ["json"] }
 serde_json = "*"

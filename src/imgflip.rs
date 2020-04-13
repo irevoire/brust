@@ -1,3 +1,4 @@
+use reqwest::{blocking::Client, header};
 use std::env;
 
 /// Generate a meme with the imageflip API
@@ -22,10 +23,13 @@ pub fn generate_image_url(
         h1.unwrap_or(""),
         h2.unwrap_or("")
     );
-    let resp = ureq::post("https://api.imgflip.com/caption_image")
-        .set("Content-Type", "application/x-www-form-urlencoded")
-        .send_string(&url);
-    let url = &resp.into_json()?["data"]["url"];
+    let resp: serde_json::Value = Client::new()
+        .post("https://api.imgflip.com/caption_image")
+        .header(header::CONTENT_TYPE, "application/x-www-form-urlencoded")
+        .body(url)
+        .send()?
+        .json()?;
+    let url = &resp["data"]["url"];
     if let Some(url) = url.as_str() {
         Ok(url.to_string())
     } else {

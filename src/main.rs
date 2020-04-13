@@ -4,10 +4,16 @@ mod utils;
 
 use commands::{mock::*, roasted::*, tg::*};
 use serenity::{
-    framework::{standard::macros::group, StandardFramework},
+    framework::{
+        standard::macros::{group, help},
+        standard::{help_commands, Args, CommandGroup, CommandResult, HelpOptions},
+        StandardFramework,
+    },
     model::gateway::Ready,
+    model::prelude::*,
     prelude::*,
 };
+use std::collections::HashSet;
 use std::env;
 
 struct Handler;
@@ -16,6 +22,21 @@ impl EventHandler for Handler {
     fn ready(&self, _: Context, ready: Ready) {
         println!("{} is connected!", ready.user.name);
     }
+}
+
+#[help]
+#[individual_command_tip = ":crab: To get help with an individual command, pass its name as an argument to this command. :crab:"]
+#[wrong_channel = "Hide"]
+#[max_levenshtein_distance(3)]
+fn my_help(
+    context: &mut Context,
+    msg: &Message,
+    args: Args,
+    help_options: &'static HelpOptions,
+    groups: &[&'static CommandGroup],
+    owners: HashSet<UserId>,
+) -> CommandResult {
+    help_commands::with_embeds(context, msg, args, help_options, groups, owners)
 }
 
 #[group]
@@ -35,7 +56,8 @@ fn main() {
     client.with_framework(
         StandardFramework::new()
             .configure(|c| c.prefix("!").delimiters(vec![", ", ",", " "]))
-            .group(&GENERAL_GROUP),
+            .group(&GENERAL_GROUP)
+            .help(&MY_HELP),
     );
 
     if let Err(why) = client.start() {

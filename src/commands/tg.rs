@@ -26,7 +26,7 @@ pub fn tg(ctx: &mut Context, msg: &Message, _args: Args) -> CommandResult {
     let insults = insults.unwrap();
     let mut insult = insults.pop();
     if insult.is_none() {
-        *insults = init();
+        *insults = init_tg();
         insult = insults.pop();
     }
     let insult = insult.expect("The insults vector look empty?");
@@ -35,7 +35,7 @@ pub fn tg(ctx: &mut Context, msg: &Message, _args: Args) -> CommandResult {
     Ok(())
 }
 
-pub fn init() -> Vec<&'static str> {
+pub fn init_tg() -> Vec<&'static str> {
     let mut insults = vec![
         "Va marcher sur des Légos",
         "Gredin",

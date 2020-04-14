@@ -2,7 +2,7 @@ mod commands;
 mod imgflip;
 mod utils;
 
-use commands::{mock::*, roasted::*, tg::*};
+use commands::*;
 use serenity::{
     framework::{
         standard::macros::{group, help},
@@ -50,7 +50,7 @@ fn main() {
     let mut client = Client::new(&token, Handler).expect("Err creating client");
     {
         let mut data = client.data.write();
-        data.insert::<commands::tg::Tg>(commands::tg::init());
+        data.insert::<commands::Tg>(commands::init_tg());
     }
 
     client.with_framework(

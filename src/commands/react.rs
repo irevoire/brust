@@ -84,7 +84,7 @@ fn generate_equivalence() -> HashMap<char, Vec<String>> {
         ],
     );
     base.insert('d', vec!["🇩".to_string(), "↩️".to_string(), "▶️".to_string()]);
-    base.insert('e', vec!["🇪".to_string()]);
+    base.insert('e', vec!["🇪".to_string(),"3️⃣".to_string()]);
     base.insert('f', vec!["🇫".to_string()]);
     base.insert('g', vec!["🇬".to_string()]);
     base.insert('h', vec!["🇭".to_string(), "♓".to_string()]);

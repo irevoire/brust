@@ -26,3 +26,17 @@ pub fn find_relative_content(
     let message = message.unwrap_or_else(|| args.rest().to_string());
     Ok(message)
 }
+
+pub fn unicode_to_safe_ascii(c: char) -> Option<char> {
+    match c {
+        'a'..='z' | 'A'..='Z' | '0'..='9' | ' ' | '.' | '!' | '?' | '*' | '#' => {
+            Some(c.to_ascii_lowercase())
+        }
+        'á' | 'à' | 'â' | 'ä' | 'Á' | 'À' | 'Â' | 'Ä' => Some('a'),
+        'é' | 'è' | 'ê' | 'ë' | 'É' | 'È' | 'Ê' | 'Ë' => Some('e'),
+        'í' | 'ì' | 'î' | 'ï' | 'Í' | 'Ì' | 'Î' | 'Ï' => Some('i'),
+        'ó' | 'ò' | 'ô' | 'ö' | 'Ó' | 'Ò' | 'Ô' | 'Ö' => Some('o'),
+        'ú' | 'ù' | 'û' | 'ü' | 'Ú' | 'Ù' | 'Û' | 'Ü' => Some('u'),
+        _ => None,
+    }
+}

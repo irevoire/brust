@@ -2,6 +2,11 @@ use serenity::framework::standard::{macros::command, Args, CommandResult};
 use serenity::{model::channel::Message, prelude::Context};
 
 #[command]
+#[description = r#"Mocking sponge bob meme.
+You can:
+    - Type your message right after the `!mock`
+    - @someone to use his message
+    - Write nothing to use the last message in the channel"#]
 pub fn mock(ctx: &mut Context, msg: &Message, args: Args) -> CommandResult {
     let message = crate::utils::find_relative_content(ctx, msg, args)?;
     let mut new = String::new();

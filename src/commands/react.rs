@@ -5,6 +5,11 @@ use serenity::{model::channel::Message, prelude::Context};
 use std::collections::{HashMap, HashSet};
 
 #[command]
+#[description = r#"React to a message.
+You can:
+    - Type your reaction right after the `!react` to react to the previous message
+    - @someone and write your reaction right after
+    - Write nothing and go fuck yourself"#]
 pub fn react(ctx: &mut Context, msg: &Message, mut args: Args) -> CommandResult {
     let message;
     match args.single::<UserId>() {
@@ -84,7 +89,7 @@ fn generate_equivalence() -> HashMap<char, Vec<String>> {
         ],
     );
     base.insert('d', vec!["🇩".to_string(), "↩️".to_string(), "▶️".to_string()]);
-    base.insert('e', vec!["🇪".to_string(),"3️⃣".to_string()]);
+    base.insert('e', vec!["🇪".to_string(), "3️⃣".to_string()]);
     base.insert('f', vec!["🇫".to_string()]);
     base.insert('g', vec!["🇬".to_string()]);
     base.insert('h', vec!["🇭".to_string(), "♓".to_string()]);

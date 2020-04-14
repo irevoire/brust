@@ -15,6 +15,7 @@ impl TypeMapKey for Tg {
 }
 
 #[command]
+#[description = r#"Throw a random insult"#]
 pub fn tg(ctx: &mut Context, msg: &Message, _args: Args) -> CommandResult {
     let mut data = ctx.data.write();
 

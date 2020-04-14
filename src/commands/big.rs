@@ -3,6 +3,7 @@ use serenity::framework::standard::{macros::command, Args, CommandResult};
 use serenity::{model::channel::Message, prelude::Context};
 
 #[command]
+#[description = r#"Write the following text in emoji"#]
 pub fn big(ctx: &mut Context, msg: &Message, args: Args) -> CommandResult {
     let message = crate::utils::find_relative_content(ctx, msg, args)?;
     let mut new = String::new();

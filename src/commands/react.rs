@@ -1,7 +1,7 @@
 use crate::utils::unicode_to_safe_ascii;
 use serenity::framework::standard::{macros::command, Args, CommandResult};
-use serenity::model::prelude::UserId;
-use serenity::{model::channel::Message, prelude::Context};
+use serenity::model::prelude::{Message, ReactionType, UserId};
+use serenity::prelude::Context;
 use std::collections::{HashMap, HashSet};
 
 #[command]
@@ -21,11 +21,11 @@ pub fn react(ctx: &mut Context, msg: &Message, mut args: Args) -> CommandResult 
                 .find(|msg| msg.author.id == id)
                 .cloned();
             if tmp.is_none() {
-                msg.react(&ctx, "🇵")?;
-                msg.react(&ctx, "🇩")?;
-                return Ok(());
+                args.restore();
+                message = get_last_message(ctx, msg)?;
+            } else {
+                message = tmp.unwrap();
             }
-            message = tmp.unwrap();
         }
         Err(_) => {
             message = msg
@@ -35,7 +35,16 @@ pub fn react(ctx: &mut Context, msg: &Message, mut args: Args) -> CommandResult 
         }
     };
     let rest = args.rest();
+
     let mut already_used_emoji = HashSet::new();
+    // get all the already used emoji
+    for reaction in message.reactions.iter() {
+        match &reaction.reaction_type {
+            ReactionType::Unicode(e) => already_used_emoji.insert(e.clone()),
+            _ => false, // useless
+        };
+    }
+
     for c in rest.chars() {
         let emoji = match char_to_emoji(c, &already_used_emoji) {
             Some(c) => c,
@@ -50,6 +59,16 @@ pub fn react(ctx: &mut Context, msg: &Message, mut args: Args) -> CommandResult 
     }
     msg.delete(&ctx)?;
     Ok(())
+}
+
+fn get_last_message(
+    ctx: &mut Context,
+    msg: &Message,
+) -> Result<Message, Box<dyn std::error::Error>> {
+    Ok(msg
+        .channel_id
+        .messages(&ctx, |retriever| retriever.before(msg.id).limit(1))?[0]
+        .clone())
 }
 
 fn char_to_emoji(c: char, banned_emoji: &HashSet<String>) -> Option<String> {

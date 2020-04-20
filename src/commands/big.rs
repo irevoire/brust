@@ -10,6 +10,7 @@ pub fn big(ctx: &mut Context, msg: &Message, args: Args) -> CommandResult {
     for c in message.chars() {
         let emoji = char_to_emoji(c).unwrap_or(c.to_string());
         new.push_str(&emoji);
+        new.push(' ');
     }
     msg.channel_id.say(&ctx, new)?;
     Ok(())

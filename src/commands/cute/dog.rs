@@ -41,6 +41,8 @@ fn fetch_dog_page() -> Result<String, Box<dyn std::error::Error>> {
 fn fetch_url_in_dog_page(page: String) -> Option<String> {
     let document = Document::from(page.as_str());
     let dog_img = document.find(Attr("id", "dog-img")).next()?;
-    let url = dog_img.find(Attr("src", ())).next()?.attr("src")?;
+    let url = dog_img
+        .attr("src")
+        .or_else(|| dog_img.find(Attr("src", ())).next()?.attr("src"))?;
     Some(format!("https://random.dog/{}", url))
 }

@@ -6,7 +6,7 @@ use serenity::framework::standard::{macros::command, Args, CommandResult};
 use serenity::{model::channel::Message, prelude::Context};
 
 #[command]
-#[description = "Send cute cat picture stolen from https://random.cat"]
+#[description = "Send cute cat picture stolen from http://random.cat"]
 pub fn cat(ctx: &mut Context, msg: &Message, _args: Args) -> CommandResult {
     let mut rng = rand::thread_rng();
     let cat_id = rng.gen_range(0, 1677);

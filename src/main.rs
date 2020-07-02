@@ -44,7 +44,7 @@ fn my_help(
 struct General;
 
 #[group]
-#[commands(cat)]
+#[commands(cat, dog)]
 struct Cute;
 
 fn main() {

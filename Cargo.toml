@@ -6,6 +6,7 @@ edition = "2018"
 
 [dependencies]
 serenity = "*"
+select = "*"
 kankyo = "*"
 rand = "*"
 reqwest = { version = "*", features = ["json"] }

@@ -43,6 +43,10 @@ fn my_help(
 #[commands(tg, mock, roasted, big, react)]
 struct General;
 
+#[group]
+#[commands(cat)]
+struct Cute;
+
 fn main() {
     kankyo::load(false).expect("Failed to load .env file");
 
@@ -57,6 +61,7 @@ fn main() {
         StandardFramework::new()
             .configure(|c| c.prefix("!").delimiters(vec![", ", ",", " "]))
             .group(&GENERAL_GROUP)
+            .group(&CUTE_GROUP)
             .help(&MY_HELP),
     );
 

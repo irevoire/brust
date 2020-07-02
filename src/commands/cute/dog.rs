@@ -5,6 +5,7 @@ use serenity::framework::standard::{macros::command, Args, CommandResult};
 use serenity::{model::channel::Message, prelude::Context};
 
 #[command]
+#[aliases("doggo")]
 #[description = "Send cute dog picture stolen from https://random.dog"]
 pub fn dog(ctx: &mut Context, msg: &Message, _args: Args) -> CommandResult {
     let page = fetch_dog_page();

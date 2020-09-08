@@ -8,7 +8,10 @@ use serenity::{model::channel::Message, prelude::Context};
 #[command]
 #[description = "Send cute cat picture stolen from http://random.cat"]
 pub fn cat(ctx: &mut Context, msg: &Message, _args: Args) -> CommandResult {
-    let page = fetch_cat_page();
+    let data = ctx.data.read();
+    let mut rng = data.get::<crate::Random>().unwrap().lock().unwrap();
+
+    let page = fetch_cat_page(&mut *rng);
     if let Err(e) = page {
         let _ = msg.reply(
             &ctx,
@@ -37,8 +40,7 @@ pub fn cat(ctx: &mut Context, msg: &Message, _args: Args) -> CommandResult {
     Ok(())
 }
 
-fn fetch_cat_page() -> Result<String, Box<dyn std::error::Error>> {
-    let mut rng = rand::thread_rng();
+fn fetch_cat_page(rng: &mut impl Rng) -> Result<String, Box<dyn std::error::Error>> {
     let cat_id = rng.gen_range(0, 1677);
     Ok(Client::new()
         .get(&format!("http://random.cat/view/{}", cat_id))

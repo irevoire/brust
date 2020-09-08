@@ -1,6 +1,7 @@
 use rand::seq::SliceRandom;
-use rand::thread_rng;
+use rand::Rng;
 use serenity::framework::standard::{macros::command, Args, CommandResult};
+use std::sync::Mutex;
 
 use serenity::{
     model::channel::Message,
@@ -11,23 +12,19 @@ pub struct Tg;
 
 // we are going to store the insults in the first vector and random index in the second
 impl TypeMapKey for Tg {
-    type Value = Vec<&'static str>;
+    type Value = Mutex<Vec<&'static str>>;
 }
 
 #[command]
 #[description = r#"Throw a random insult"#]
 pub fn tg(ctx: &mut Context, msg: &Message, _args: Args) -> CommandResult {
-    let mut data = ctx.data.write();
+    let data = ctx.data.read();
 
-    let insults = data.get_mut::<Tg>();
-    if insults.is_none() {
-        let _ = msg.reply(&ctx, "Jesus is dead");
-        return Ok(());
-    }
-    let insults = insults.unwrap();
+    let mut insults = data.get::<Tg>().unwrap().lock().unwrap();
     let mut insult = insults.pop();
     if insult.is_none() {
-        *insults = init_tg();
+        let rng = &mut *data.get::<crate::Random>().unwrap().lock().unwrap();
+        *insults = init_tg(rng);
         insult = insults.pop();
     }
     let insult = insult.expect("The insults vector look empty?");
@@ -36,7 +33,7 @@ pub fn tg(ctx: &mut Context, msg: &Message, _args: Args) -> CommandResult {
     Ok(())
 }
 
-pub fn init_tg() -> Vec<&'static str> {
+pub fn init_tg(rng: &mut impl Rng) -> Vec<&'static str> {
     let mut insults = vec![
         "Va marcher sur des Légos",
         "Gredin",
@@ -203,7 +200,6 @@ pub fn init_tg() -> Vec<&'static str> {
         "T’es moche même de dos",
         "Puterelle",
     ];
-    let mut rng = thread_rng();
-    insults.shuffle(&mut rng);
+    insults.shuffle(rng);
     insults
 }

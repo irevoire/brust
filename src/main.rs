@@ -3,6 +3,8 @@ mod imgflip;
 mod utils;
 
 use commands::*;
+use rand::rngs::SmallRng;
+use rand::SeedableRng;
 use serenity::{
     framework::{
         standard::macros::{group, help},
@@ -15,6 +17,7 @@ use serenity::{
 };
 use std::collections::HashSet;
 use std::env;
+use std::sync::Mutex;
 
 struct Handler;
 
@@ -22,6 +25,12 @@ impl EventHandler for Handler {
     fn ready(&self, _: Context, ready: Ready) {
         println!("{} is connected!", ready.user.name);
     }
+}
+
+pub struct Random;
+
+impl TypeMapKey for Random {
+    type Value = Mutex<SmallRng>;
 }
 
 #[help]
@@ -52,9 +61,12 @@ fn main() {
 
     let token = env::var("DISCORD_TOKEN").expect("Expected a token in the environment");
     let mut client = Client::new(&token, Handler).expect("Err creating client");
+    let mut rng = SmallRng::from_entropy();
+
     {
         let mut data = client.data.write();
-        data.insert::<commands::Tg>(commands::init_tg());
+        data.insert::<commands::Tg>(Mutex::new(commands::init_tg(&mut rng)));
+        data.insert::<Random>(Mutex::new(rng));
     }
 
     client.with_framework(

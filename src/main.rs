@@ -49,7 +49,7 @@ fn my_help(
 }
 
 #[group]
-#[commands(tg, mock, roasted, big, react, choose)]
+#[commands(tg, mock, roasted, big, react, choose, roll)]
 struct General;
 
 #[group]

@@ -13,7 +13,7 @@ pub fn dog(ctx: &mut Context, msg: &Message, args: Args) -> CommandResult {
     } else {
         fetch_random_dog_url()
     };
-    match url {
+    let _ = match url {
         Ok(url) => msg
             .channel_id
             .send_files(&ctx, vec![url.as_str()], |m| m.content(&msg.author)),

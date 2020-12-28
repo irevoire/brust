@@ -64,7 +64,7 @@ async fn my_help(
 struct General;
 
 #[group]
-#[commands(cat, dog)]
+#[commands(cat, dog, spood)]
 struct Cute;
 
 #[tokio::main]

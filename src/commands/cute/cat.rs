@@ -6,6 +6,7 @@ use serenity::framework::standard::{macros::command, Args, CommandResult};
 use serenity::{model::channel::Message, prelude::Context};
 
 #[command]
+#[aliases("doggo")]
 #[description = "Send cute cat picture stolen from http://random.cat"]
 pub async fn cat(ctx: &Context, msg: &Message, _args: Args) -> CommandResult {
     let data = ctx.data.read().await;
@@ -40,7 +41,8 @@ pub async fn cat(ctx: &Context, msg: &Message, _args: Args) -> CommandResult {
 
     let _ = msg
         .channel_id
-        .send_files(&ctx, vec![url.as_str()], |m| m.content(&msg.author));
+        .send_files(&ctx, vec![url.as_str()], |m| m.content(&msg.author))
+        .await?;
     Ok(())
 }
 

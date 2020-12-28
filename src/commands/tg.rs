@@ -1,7 +1,8 @@
 use rand::seq::SliceRandom;
 use rand::Rng;
 use serenity::framework::standard::{macros::command, Args, CommandResult};
-use std::sync::Mutex;
+use std::sync::Arc;
+use tokio::sync::Mutex;
 
 use serenity::{
     model::channel::Message,
@@ -12,18 +13,18 @@ pub struct Tg;
 
 // we are going to store the insults in the first vector and random index in the second
 impl TypeMapKey for Tg {
-    type Value = Mutex<Vec<&'static str>>;
+    type Value = Arc<Mutex<Vec<&'static str>>>;
 }
 
 #[command]
 #[description = r#"Throw a random insult"#]
-pub fn tg(ctx: &mut Context, msg: &Message, _args: Args) -> CommandResult {
-    let data = ctx.data.read();
+pub async fn tg(ctx: &Context, msg: &Message, _args: Args) -> CommandResult {
+    let data = ctx.data.read().await;
 
-    let mut insults = data.get::<Tg>().unwrap().lock().unwrap();
+    let mut insults = data.get::<Tg>().unwrap().lock().await;
     let mut insult = insults.pop();
     if insult.is_none() {
-        let rng = &mut *data.get::<crate::Random>().unwrap().lock().unwrap();
+        let rng = &mut *data.get::<crate::Random>().unwrap().lock().await;
         *insults = init_tg(rng);
         insult = insults.pop();
     }

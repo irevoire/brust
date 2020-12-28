@@ -1,4 +1,5 @@
 use crate::utils::unicode_to_safe_ascii;
+use anyhow::Result;
 use serenity::framework::standard::{macros::command, Args, CommandResult};
 use serenity::model::prelude::{Message, ReactionType, UserId};
 use serenity::prelude::Context;
@@ -10,19 +11,20 @@ You can:
     - Type your reaction right after the `!react` to react to the previous message
     - @someone and write your reaction right after
     - Write nothing and go fuck yourself"#]
-pub fn react(ctx: &mut Context, msg: &Message, mut args: Args) -> CommandResult {
+pub async fn react(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
     let message;
     match args.single::<UserId>() {
         Ok(id) => {
             let tmp = msg
                 .channel_id
-                .messages(&ctx, |retriever| retriever.before(msg.id))?
+                .messages(&ctx, |retriever| retriever.before(msg.id))
+                .await?
                 .iter()
                 .find(|msg| msg.author.id == id)
                 .cloned();
             if tmp.is_none() {
                 args.restore();
-                message = get_last_message(ctx, msg)?;
+                message = get_last_message(ctx, msg).await?;
             } else {
                 message = tmp.unwrap();
             }
@@ -30,7 +32,8 @@ pub fn react(ctx: &mut Context, msg: &Message, mut args: Args) -> CommandResult 
         Err(_) => {
             message = msg
                 .channel_id
-                .messages(&ctx, |retriever| retriever.before(msg.id).limit(1))?[0]
+                .messages(&ctx, |retriever| retriever.before(msg.id).limit(1))
+                .await?[0]
                 .clone();
         }
     };
@@ -49,25 +52,26 @@ pub fn react(ctx: &mut Context, msg: &Message, mut args: Args) -> CommandResult 
         let emoji = match char_to_emoji(c, &already_used_emoji) {
             Some(c) => c,
             None => {
-                msg.react(&ctx, "🇵")?;
-                msg.react(&ctx, "🇩")?;
+                msg.react(&ctx, '🇵').await?;
+                msg.react(&ctx, '🇩').await?;
                 return Ok(());
             }
         };
-        message.react(&ctx, emoji.clone())?;
+        message
+            // TODO: does this « cast » to char really work with all emoji?
+            .react(&ctx, emoji.clone().chars().next().unwrap())
+            .await?;
         already_used_emoji.insert(emoji);
     }
-    msg.delete(&ctx)?;
+    msg.delete(&ctx).await?;
     Ok(())
 }
 
-fn get_last_message(
-    ctx: &mut Context,
-    msg: &Message,
-) -> Result<Message, Box<dyn std::error::Error>> {
+async fn get_last_message(ctx: &Context, msg: &Message) -> Result<Message> {
     Ok(msg
         .channel_id
-        .messages(&ctx, |retriever| retriever.before(msg.id).limit(1))?[0]
+        .messages(&ctx, |retriever| retriever.before(msg.id).limit(1))
+        .await?[0]
         .clone())
 }
 

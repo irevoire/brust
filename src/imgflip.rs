@@ -1,15 +1,12 @@
-use reqwest::{blocking::Client, header};
+use anyhow::{bail, Result};
+use reqwest::header;
 use std::env;
 
 /// Generate a meme with the imageflip API
 /// h1 -> the text to the top of the image
 /// h2 -> the text to the bottom of the image
 /// id -> the id of the meme
-pub fn generate_image_url(
-    h1: Option<&str>,
-    h2: Option<&str>,
-    id: &str,
-) -> Result<String, Box<dyn std::error::Error>> {
+pub async fn generate_image_url(h1: Option<&str>, h2: Option<&str>, id: &str) -> Result<String> {
     let logs = env::var("IMGFLIP")?;
     let logs: Vec<&str> = logs.splitn(2, ':').collect();
     let username = logs[0];
@@ -23,16 +20,18 @@ pub fn generate_image_url(
         h1.unwrap_or(""),
         h2.unwrap_or("")
     );
-    let resp: serde_json::Value = Client::new()
+    let resp: serde_json::Value = reqwest::Client::new()
         .post("https://api.imgflip.com/caption_image")
         .header(header::CONTENT_TYPE, "application/x-www-form-urlencoded")
         .body(url)
-        .send()?
-        .json()?;
+        .send()
+        .await?
+        .json()
+        .await?;
     let url = &resp["data"]["url"];
     if let Some(url) = url.as_str() {
         Ok(url.to_string())
     } else {
-        Err("Could not as str".into())
+        bail!("Could not as str")
     }
 }

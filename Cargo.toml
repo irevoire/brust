@@ -5,9 +5,11 @@ authors = ["Thomas Campistron <irevoire@hotmail.fr>"]
 edition = "2018"
 
 [dependencies]
+tokio = { version = "*", features = ["full"] }
 serenity = "*"
 select = "*"
 kankyo = "*"
-rand = "*"
+rand = { version = "*", features = ["small_rng"] }
 reqwest = { version = "*", features = ["json"] }
 serde_json = "*"
+anyhow = "*"

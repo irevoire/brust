@@ -1,4 +1,4 @@
-use reqwest::blocking::Client;
+use anyhow::{anyhow, bail, Result};
 use select::document::Document;
 use select::predicate::Attr;
 use serenity::framework::standard::{macros::command, Args, CommandResult};
@@ -7,49 +7,54 @@ use serenity::{model::channel::Message, prelude::Context};
 #[command]
 #[aliases("doggo")]
 #[description = "Send cute dog picture stolen from https://random.dog"]
-pub fn dog(ctx: &mut Context, msg: &Message, args: Args) -> CommandResult {
+pub async fn dog(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
     let url = if args.len() != 0 {
-        fetch_dog_breed_url(args.raw().collect::<Vec<&str>>())
+        fetch_dog_breed_url(args.raw().collect::<Vec<&str>>()).await
     } else {
-        fetch_random_dog_url()
+        fetch_random_dog_url().await
     };
     let _ = match url {
-        Ok(url) => msg
-            .channel_id
-            .send_files(&ctx, vec![url.as_str()], |m| m.content(&msg.author)),
-        Err(annoncement) => msg.reply(&ctx, format!("Doggo express: {}", annoncement)),
+        Ok(url) => {
+            msg.channel_id
+                .send_files(&ctx, vec![url.as_str()], |m| m.content(&msg.author))
+                .await?
+        }
+        Err(annoncement) => {
+            msg.reply(&ctx, format!("Doggo express: {}", annoncement))
+                .await?
+        }
     };
     Ok(())
 }
 
 /// look for a specific breed of dog from dog api
-fn fetch_dog_breed_url(mut breed: Vec<&str>) -> Result<String, Box<dyn std::error::Error>> {
+async fn fetch_dog_breed_url(mut breed: Vec<&str>) -> Result<String> {
     breed.reverse();
     let breed = breed.join("/");
-    let resp: serde_json::Value = Client::new()
-        .get(&format!(
-            "https://dog.ceo/api/breed/{}/images/random",
-            breed
-        ))
-        .send()?
-        .json()?;
+    let resp: serde_json::Value = reqwest::get(&format!(
+        "https://dog.ceo/api/breed/{}/images/random",
+        breed
+    ))
+    .await?
+    .json()
+    .await?;
 
     match resp["status"].as_str().unwrap() {
-        "error" => Err(resp["message"].as_str().unwrap().into()),
+        "error" => bail!("{}", resp["message"]),
         "success" => Ok(resp["message"].as_str().unwrap().to_string()),
-        _ => Err("The doggo center looks closed".into()),
+        _ => bail!("The doggo center looks closed"),
     }
 }
 
 /// return an url from http://random.dog
-fn fetch_random_dog_url() -> Result<String, Box<dyn std::error::Error>> {
-    let page = fetch_dog_page()?;
-    let url = fetch_url_in_dog_page(page).ok_or("your doggo got lost :pensive:")?;
+async fn fetch_random_dog_url() -> Result<String> {
+    let page = fetch_dog_page().await?;
+    let url = fetch_url_in_dog_page(page).ok_or(anyhow!("your doggo got lost :pensive:"))?;
     Ok(url)
 }
 
-fn fetch_dog_page() -> Result<String, Box<dyn std::error::Error>> {
-    Ok(Client::new().get("https://random.dog").send()?.text()?)
+async fn fetch_dog_page() -> Result<String> {
+    Ok(reqwest::get("https://random.dog").await?.text().await?)
 }
 
 fn fetch_url_in_dog_page(page: String) -> Option<String> {

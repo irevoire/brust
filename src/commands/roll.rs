@@ -1,3 +1,4 @@
+use anyhow::{anyhow, bail};
 use rand::Rng;
 use serenity::framework::standard::{macros::command, Args, CommandResult};
 use serenity::{model::channel::Message, prelude::Context};
@@ -5,19 +6,19 @@ use std::str::FromStr;
 
 #[command]
 #[description = r#"Roll dice"#]
-pub fn roll(ctx: &mut Context, msg: &Message, mut args: Args) -> CommandResult {
-    let data = ctx.data.read();
-    let mut rng = data.get::<crate::Random>().unwrap().lock().unwrap();
+pub async fn roll(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
+    let data = ctx.data.read().await;
+    let mut rng = data.get::<crate::Random>().unwrap().lock().await;
 
     let terms = args
         .iter::<String>()
         .map(|arg| arg.unwrap())
         .map(|s| s.parse::<Term>())
-        .collect::<Result<Vec<Term>, Box<dyn std::error::Error>>>();
+        .collect::<anyhow::Result<Vec<Term>>>();
 
     if let Err(ref e) = terms {
-        let _ = msg.reply(&ctx, format!("{}", e));
-        return Err(e.into());
+        let _ = msg.reply(&ctx, format!("{}", e)).await?;
+        return Ok(());
     }
     let terms = terms.unwrap();
 
@@ -28,8 +29,8 @@ pub fn roll(ctx: &mut Context, msg: &Message, mut args: Args) -> CommandResult {
         let step = match parser.and(&term, &mut *rng) {
             Ok(step) => step,
             Err(e) => {
-                let _ = msg.reply(&ctx, format!("{}", e));
-                return Err(e.into());
+                let _ = msg.reply(&ctx, format!("{}", e)).await?;
+                return Ok(());
             }
         };
         match term {
@@ -39,11 +40,14 @@ pub fn roll(ctx: &mut Context, msg: &Message, mut args: Args) -> CommandResult {
     }
 
     let res = res.join(" ");
+    let parser = parser.total;
+    if parser.is_none() {
+        return Ok(());
+    }
 
-    let _ = msg.reply(
-        &ctx,
-        format!("{} ({})", parser.total.ok_or("There was no op")?, res),
-    );
+    let _ = msg
+        .reply(&ctx, format!("{} ({})", parser.unwrap(), res))
+        .await;
     Ok(())
 }
 
@@ -69,7 +73,7 @@ impl Roll {
     pub fn roll(&self, rng: &mut impl Rng) -> i64 {
         match self {
             Roll::Dice(rolls, faces) => {
-                (0..*rolls).fold(0, |acc, _| acc + rng.gen_range(1, faces + 1) as i64)
+                (0..*rolls).fold(0, |acc, _| acc + rng.gen_range(1..faces + 1) as i64)
             }
             Roll::Const(c) => *c as i64,
         }
@@ -77,15 +81,15 @@ impl Roll {
 }
 
 impl FromStr for Roll {
-    type Err = Box<dyn std::error::Error>;
+    type Err = anyhow::Error;
 
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
+    fn from_str(s: &str) -> anyhow::Result<Self, Self::Err> {
         if let Ok(c) = s.parse::<usize>() {
             return Ok(Roll::Const(c));
         }
         let v: Vec<&str> = s.split('d').collect();
         if v.len() != 2 {
-            return Err("Failed to parse the dice".into());
+            bail!("Failed to parse the dice");
         }
         let (rolls, faces) = (v[0], v[1]);
         Ok(Roll::Dice(rolls.parse()?, faces.parse()?))
@@ -122,14 +126,14 @@ impl Binop {
 }
 
 impl FromStr for Binop {
-    type Err = Box<dyn std::error::Error>;
+    type Err = anyhow::Error;
 
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
+    fn from_str(s: &str) -> anyhow::Result<Self, Self::Err> {
         match s.trim() {
             "+" => Ok(Binop::Add),
             "-" => Ok(Binop::Sub),
             "*" => Ok(Binop::Mul),
-            s => Err(format!("Unsupported operator {}", s).into()),
+            s => bail!("Unsupported operator {}", s),
         }
     }
 }
@@ -140,15 +144,15 @@ enum Term {
 }
 
 impl FromStr for Term {
-    type Err = Box<dyn std::error::Error>;
+    type Err = anyhow::Error;
 
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
+    fn from_str(s: &str) -> anyhow::Result<Self, Self::Err> {
         if let Ok(b) = s.parse::<Binop>() {
             Ok(Term::Binop(b))
         } else if let Ok(r) = s.parse::<Roll>() {
             Ok(Term::Roll(r))
         } else {
-            Err(format!("Can't parse this term: \"{}\"", s).into())
+            bail!("Can't parse this term: \"{}\"", s)
         }
     }
 }
@@ -160,32 +164,26 @@ struct Parser {
 }
 
 impl Parser {
-    pub fn and(
-        &mut self,
-        term: &Term,
-        rng: &mut impl Rng,
-    ) -> Result<i64, Box<dyn std::error::Error>> {
+    pub fn and(&mut self, term: &Term, rng: &mut impl Rng) -> anyhow::Result<i64> {
         match term {
             Term::Binop(binop) => {
                 if self.binop.is_some() || self.total.is_none() {
-                    return Err(format!(
+                    bail!(
                         "Malformed equation: was expecting a term but instead got: {}",
                         binop
-                    )
-                    .into());
+                    );
                 }
                 self.binop = Some(*binop);
-                self.total.ok_or("Bug".into())
+                self.total.ok_or(anyhow!("Bug"))
             }
             Term::Roll(roll) => {
                 let res = roll.roll(rng);
 
                 if self.binop.is_none() && self.total.is_some() {
-                    Err(format!(
+                    bail!(
                         "Malformed equation: was expecting an operator but intsead got: {}",
                         roll
-                    )
-                    .into())
+                    );
                 } else if self.total.is_none() {
                     self.total = Some(res);
                     Ok(res)

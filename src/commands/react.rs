@@ -58,8 +58,7 @@ pub async fn react(ctx: &Context, msg: &Message, mut args: Args) -> CommandResul
             }
         };
         message
-            // TODO: does this « cast » to char really work with all emoji?
-            .react(&ctx, emoji.clone().chars().next().unwrap())
+            .react(&ctx, emoji.parse::<ReactionType>().unwrap())
             .await?;
         already_used_emoji.insert(emoji);
     }
@@ -108,33 +107,56 @@ fn generate_equivalence() -> HashMap<char, Vec<String>> {
             "🇨".to_string(),
             "↪️".to_string(),
             "☪️".to_string(),
+            "🌊".to_string(),
+            "🌘".to_string(),
+            "🌔".to_string(),
+            "©️".to_string(),
             "🗜️".to_string(),
         ],
     );
     base.insert('d', vec!["🇩".to_string(), "↩️".to_string(), "▶️".to_string()]);
-    base.insert('e', vec!["🇪".to_string(), "3️⃣".to_string()]);
+    base.insert(
+        'e',
+        vec!["🇪".to_string(), "3️⃣".to_string(), "📧".to_string()],
+    );
     base.insert('f', vec!["🇫".to_string()]);
-    base.insert('g', vec!["🇬".to_string()]);
+    base.insert('g', vec!["🇬".to_string(), "🗜️".to_string()]);
     base.insert('h', vec!["🇭".to_string(), "♓".to_string()]);
     base.insert(
         'i',
         vec![
             "🇮".to_string(),
             "ℹ️".to_string(),
-            "❕".to_string(),
             "📍".to_string(),
+            "❕".to_string(),
             "💈".to_string(),
         ],
     );
     base.insert('j', vec!["🇯".to_string(), "⤴️".to_string()]);
     base.insert('k', vec!["🇰".to_string()]);
-    base.insert('l', vec!["🇱".to_string()]);
+    base.insert(
+        'l',
+        vec![
+            "🇱".to_string(),
+            "💪".to_string(),
+            "💪🏻".to_string(),
+            "💪🏼🏻".to_string(),
+            "💪🏽🏻".to_string(),
+            "💪🏾🏻".to_string(),
+            "💪🏿🏻".to_string(),
+            "🦾🏻".to_string(),
+            "🙋".to_string(),
+            "🙋‍♂️".to_string(),
+            "🙋‍♀️".to_string(),
+        ],
+    );
     base.insert(
         'm',
         vec![
             "🇲".to_string(),
             "Ⓜ️".to_string(),
             "♏".to_string(),
+            "〽️".to_string(),
             "♍".to_string(),
         ],
     );
@@ -156,14 +178,23 @@ fn generate_equivalence() -> HashMap<char, Vec<String>> {
     );
     base.insert('p', vec!["🇵".to_string(), "🅿️".to_string()]);
     base.insert('q', vec!["🇶".to_string()]);
-    base.insert('r', vec!["🇷".to_string()]);
-    base.insert('s', vec!["🇸".to_string(), "5️⃣".to_string()]);
+    base.insert('r', vec!["🇷".to_string(), "®️".to_string()]);
+    base.insert(
+        's',
+        vec![
+            "🇸".to_string(),
+            "💲".to_string(),
+            "5️⃣".to_string(),
+            "🪱".to_string(),
+        ],
+    );
     base.insert('t', vec!["🇹".to_string(), "✝️".to_string(), "⬆️".to_string()]);
     base.insert(
         'u',
         vec![
             "🇺".to_string(),
             "⛎".to_string(),
+            "🐉".to_string(),
             "🇻".to_string(),
             "♈".to_string(),
         ],
@@ -177,7 +208,7 @@ fn generate_equivalence() -> HashMap<char, Vec<String>> {
             "⛎".to_string(),
         ],
     );
-    base.insert('w', vec!["🇼".to_string()]);
+    base.insert('w', vec!["🇼".to_string(), "〰️".to_string()]);
     base.insert(
         'x',
         vec![
@@ -187,7 +218,17 @@ fn generate_equivalence() -> HashMap<char, Vec<String>> {
             "✖️".to_string(),
         ],
     );
-    base.insert('y', vec!["🇾".to_string()]);
+    base.insert(
+        'y',
+        vec![
+            "🇾".to_string(),
+            "🌱".to_string(),
+            "🥇".to_string(),
+            "🥈".to_string(),
+            "🥉".to_string(),
+            "🔱".to_string(),
+        ],
+    );
     base.insert('z', vec!["🇿".to_string(), "2️⃣".to_string()]);
     base.insert(
         '0',
@@ -243,7 +284,10 @@ fn generate_equivalence() -> HashMap<char, Vec<String>> {
         vec!["❓".to_string(), "❔".to_string(), "⁉️".to_string()],
     );
     base.insert('#', vec!["#️⃣".to_string()]);
-    base.insert('*', vec!["*️⃣".to_string()]);
+    base.insert('*', vec!["*️⃣".to_string(), "⚕️".to_string(), "✳️".to_string()]);
+    base.insert('×', vec!["✖️".to_string()]);
+    base.insert('+', vec!["➕".to_string()]);
+    base.insert('÷', vec!["➗".to_string()]);
 
     base
 }

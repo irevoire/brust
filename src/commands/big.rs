@@ -6,23 +6,20 @@ use serenity::{model::channel::Message, prelude::Context};
 #[description = r#"Write the following text in emoji"#]
 pub async fn big(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
     let message = crate::utils::find_relative_content(ctx, msg, args).await?;
-    let mut new = String::new();
-    for c in message.chars() {
-        let emoji = char_to_emoji(c).unwrap_or(c.to_string());
-        new.push_str(&emoji);
-        new.push(' ');
-    }
+
+    let new = message
+        .chars()
+        .map(|c| format!("{} ", char_to_emoji(c).unwrap_or(c.to_string())))
+        .collect::<String>();
+
     msg.channel_id.say(&ctx, new).await?;
+
     Ok(())
 }
 
 pub fn char_to_emoji(c: char) -> Option<String> {
-    let safe = match unicode_to_safe_ascii(c) {
-        None => return None,
-        Some(c) => c,
-    };
-    match safe {
-        'a'..='z' => Some(format!(":regional_indicator_{}:", safe)),
+    match unicode_to_safe_ascii(c)? {
+        c @ 'a'..='z' => Some(format!(":regional_indicator_{}:", c)),
         '0' => Some(":zero:".to_string()),
         '1' => Some(":one:".to_string()),
         '2' => Some(":two:".to_string()),

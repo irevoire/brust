@@ -9,7 +9,7 @@ use serenity::{
     async_trait,
     client::bridge::gateway::ShardManager,
     framework::{
-        standard::macros::{group, help},
+        standard::macros::{group, help, hook},
         standard::{help_commands, Args, CommandGroup, CommandResult, HelpOptions},
         StandardFramework,
     },
@@ -67,6 +67,15 @@ struct General;
 #[commands(cat, dog, spood)]
 struct Cute;
 
+#[hook]
+async fn after(ctx: &Context, msg: &Message, command_name: &str, command_result: CommandResult) {
+    println!("HERE");
+    if let Err(why) = command_result {
+        eprintln!("Command '{}' returned error {:?}", command_name, why);
+        let _ = msg.reply(&ctx, why).await;
+    }
+}
+
 #[tokio::main]
 async fn main() {
     kankyo::load(false).expect("Failed to load .env file");
@@ -77,6 +86,7 @@ async fn main() {
         .configure(|c| c.prefix("!").delimiters(vec![", ", ",", " "]))
         .group(&GENERAL_GROUP)
         .group(&CUTE_GROUP)
+        .after(after)
         .help(&MY_HELP);
 
     let mut client = Client::builder(&token)

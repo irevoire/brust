@@ -13,17 +13,11 @@ pub async fn dog(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
     } else {
         fetch_random_dog_url().await
     };
-    let _ = match url {
-        Ok(url) => {
-            msg.channel_id
-                .send_files(&ctx, vec![url.as_str()], |m| m.content(&msg.author))
-                .await?
-        }
-        Err(annoncement) => {
-            msg.reply(&ctx, format!("Doggo express: {}", annoncement))
-                .await?
-        }
-    };
+
+    msg.channel_id
+        .send_files(&ctx, vec![url?.as_str()], |m| m.content(&msg.author))
+        .await?;
+
     Ok(())
 }
 

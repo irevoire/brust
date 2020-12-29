@@ -1,4 +1,4 @@
-use anyhow::Result;
+use anyhow::{anyhow, Result};
 use rand::prelude::*;
 use select::document::Document;
 use select::predicate::Attr;
@@ -12,35 +12,19 @@ pub async fn spood(ctx: &Context, msg: &Message, _args: Args) -> CommandResult {
     let data = ctx.data.read().await;
     let mut rng = data.get::<crate::Random>().unwrap().lock().await;
 
-    let page = fetch_spood_page(&mut *rng).await;
-    if let Err(e) = page {
-        let _ = msg
-            .reply(
-                &ctx,
-                format!(
-                    "Spoddo express: was not able to deliver you spood: {}\n{}",
-                    e,
-                    "https://cdn.drawception.com/drawings/gB8gGBpkSW.png" // crying spoddo
-                ),
-            )
-            .await?;
-        return Ok(());
-    }
+    let page = fetch_spood_page(&mut *rng).await.map_err(|e| {
+        anyhow!(
+            "Spoddo express: was not able to deliver you spood: {}\n{}",
+            e,
+            "https://cdn.drawception.com/drawings/gB8gGBpkSW.png" // crying spoddo
+        )
+    })?;
 
-    let url = fetch_url_in_spood_page(page?, &mut *rng);
-    if url.is_none() {
-        let _ = msg
-            .reply(
-                &ctx,
-                format!("Spoddo express: your spood got lost in the page :pensive:"),
-            )
-            .await?;
-        return Ok(());
-    }
-    let url = url.unwrap();
+    let url = fetch_url_in_spood_page(page, &mut *rng).ok_or(anyhow!(
+        "Spoddo express: your spood got lost in the page :pensive:"
+    ))?;
 
-    let _ = msg
-        .channel_id
+    msg.channel_id
         .send_files(&ctx, vec![url.as_str()], |m| m.content(&msg.author))
         .await?;
     Ok(())

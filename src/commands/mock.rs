@@ -30,8 +30,8 @@ pub async fn mock(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
             .send_files(&ctx, vec![url.as_str()], |m| m.content(&msg.author))
             .await?;
     } else {
-        let _ = msg.reply(&ctx, new).await?;
+        msg.reply(&ctx, new).await?;
     }
-    let _ = msg.delete(&ctx).await?;
+    msg.delete(&ctx).await?;
     Ok(())
 }

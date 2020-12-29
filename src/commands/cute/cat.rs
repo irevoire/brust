@@ -1,4 +1,4 @@
-use anyhow::Result;
+use anyhow::{anyhow, Result};
 use rand::Rng;
 use select::document::Document;
 use select::predicate::Attr;
@@ -6,41 +6,25 @@ use serenity::framework::standard::{macros::command, Args, CommandResult};
 use serenity::{model::channel::Message, prelude::Context};
 
 #[command]
-#[aliases("doggo")]
+#[aliases("catto")]
 #[description = "Send cute cat picture stolen from http://random.cat"]
 pub async fn cat(ctx: &Context, msg: &Message, _args: Args) -> CommandResult {
     let data = ctx.data.read().await;
     let mut rng = data.get::<crate::Random>().unwrap().lock().await;
 
-    let page = fetch_cat_page(&mut *rng).await;
-    if let Err(e) = page {
-        let _ = msg
-            .reply(
-                &ctx,
-                format!(
-                    "Catto express: was not able to deliver you cat: {}\n{}",
-                    e,
-                    "https://i.redd.it/4q32jedhkgi31.jpg" // crying catto
-                ),
-            )
-            .await?;
-        return Ok(());
-    }
+    let page = fetch_cat_page(&mut *rng).await.map_err(|e| {
+        anyhow!(
+            "Catto express: was not able to deliver you cat: {}\n{}",
+            e,
+            "https://i.redd.it/4q32jedhkgi31.jpg" // crying catto
+        )
+    })?;
 
-    let url = fetch_url_in_cat_page(page?);
-    if url.is_none() {
-        let _ = msg
-            .reply(
-                &ctx,
-                format!("Catto express: your catto got lost in the page :pensive:"),
-            )
-            .await?;
-        return Ok(());
-    }
-    let url = url.unwrap();
+    let url = fetch_url_in_cat_page(page).ok_or(anyhow!(
+        "Catto express: your catto got lost in the page :pensive:"
+    ))?;
 
-    let _ = msg
-        .channel_id
+    msg.channel_id
         .send_files(&ctx, vec![url.as_str()], |m| m.content(&msg.author))
         .await?;
     Ok(())

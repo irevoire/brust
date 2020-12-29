@@ -9,14 +9,12 @@ pub async fn choose(ctx: &Context, msg: &Message, mut args: Args) -> CommandResu
 
     let nb_choice = args.remaining();
     if nb_choice == 0 {
-        let _ = msg.reply(&ctx, "Give me arguments").await?;
-        return Ok(());
+        Err(anyhow::anyhow!("Give me arguments"))?;
     }
     let mut rng = data.get::<crate::Random>().unwrap().lock().await;
     let choice = rng.gen_range(0..nb_choice);
 
-    let _ = msg
-        .reply(&ctx, args.iter::<String>().nth(choice).unwrap().unwrap())
+    msg.reply(&ctx, args.iter::<String>().nth(choice).unwrap().unwrap())
         .await?;
     Ok(())
 }

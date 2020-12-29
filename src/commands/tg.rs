@@ -30,7 +30,7 @@ pub async fn tg(ctx: &Context, msg: &Message, _args: Args) -> CommandResult {
     }
     let insult = insult.expect("The insults vector look empty?");
 
-    let _ = msg.channel_id.say(&ctx, insult);
+    msg.channel_id.say(&ctx, insult).await?;
     Ok(())
 }
 

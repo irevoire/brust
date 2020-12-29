@@ -1,4 +1,4 @@
-use anyhow::{anyhow, bail};
+use anyhow::{anyhow, bail, Result};
 use rand::Rng;
 use serenity::framework::standard::{macros::command, Args, CommandResult};
 use serenity::{model::channel::Message, prelude::Context};
@@ -14,25 +14,13 @@ pub async fn roll(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult
         .iter::<String>()
         .map(|arg| arg.unwrap())
         .map(|s| s.parse::<Term>())
-        .collect::<anyhow::Result<Vec<Term>>>();
-
-    if let Err(ref e) = terms {
-        let _ = msg.reply(&ctx, format!("{}", e)).await?;
-        return Ok(());
-    }
-    let terms = terms.unwrap();
+        .collect::<anyhow::Result<Vec<Term>>>()?;
 
     let mut parser = Parser::default();
     let mut res = Vec::new();
 
     for term in terms {
-        let step = match parser.and(&term, &mut *rng) {
-            Ok(step) => step,
-            Err(e) => {
-                let _ = msg.reply(&ctx, format!("{}", e)).await?;
-                return Ok(());
-            }
-        };
+        let step = parser.and(&term, &mut *rng)?;
         match term {
             Term::Roll(_) => res.push(format!("{}", step)),
             Term::Binop(op) => res.push(op.to_string()),
@@ -45,9 +33,8 @@ pub async fn roll(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult
         return Ok(());
     }
 
-    let _ = msg
-        .reply(&ctx, format!("{} ({})", parser.unwrap(), res))
-        .await;
+    msg.reply(&ctx, format!("{} ({})", parser.unwrap(), res))
+        .await?;
     Ok(())
 }
 
@@ -60,11 +47,10 @@ enum Roll {
 
 impl std::fmt::Display for Roll {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        let s = match self {
-            Roll::Dice(rolls, faces) => format!("{}d{}", rolls, faces),
-            Roll::Const(c) => format!("{}", c),
-        };
-        write!(f, "{}", s)
+        match self {
+            Roll::Dice(rolls, faces) => write!(f, "{}d{}", rolls, faces),
+            Roll::Const(c) => write!(f, "{}", c),
+        }
     }
 }
 
@@ -83,7 +69,7 @@ impl Roll {
 impl FromStr for Roll {
     type Err = anyhow::Error;
 
-    fn from_str(s: &str) -> anyhow::Result<Self, Self::Err> {
+    fn from_str(s: &str) -> Result<Self> {
         if let Ok(c) = s.parse::<usize>() {
             return Ok(Roll::Const(c));
         }
@@ -106,12 +92,12 @@ enum Binop {
 
 impl std::fmt::Display for Binop {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        let s = match self {
-            Binop::Add => "+",
-            Binop::Sub => "-",
-            Binop::Mul => "*",
+        let c = match self {
+            Binop::Add => '+',
+            Binop::Sub => '-',
+            Binop::Mul => '*',
         };
-        write!(f, "{}", s)
+        write!(f, "{}", c)
     }
 }
 

@@ -7,6 +7,11 @@ use serenity::{model::channel::Message, prelude::Context};
 #[command]
 #[aliases("doggo")]
 #[description = "Send cute dog picture stolen from https://random.dog"]
+#[usage("[sub race] [main race]")]
+#[example("")]
+#[example("golden retriever")]
+#[example("retriever")]
+#[example("bernese mountain")]
 pub async fn dog(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
     let url = if args.len() != 0 {
         fetch_dog_breed_url(args.raw().collect::<Vec<&str>>()).await

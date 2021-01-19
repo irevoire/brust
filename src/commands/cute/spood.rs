@@ -7,6 +7,8 @@ use serenity::{model::channel::Message, prelude::Context};
 
 #[command]
 #[aliases("spoddo")]
+#[usage("")]
+#[example("")]
 #[description = "Send cute spood pictures stolen from https://spiderid.com"]
 pub async fn spood(ctx: &Context, msg: &Message, _args: Args) -> CommandResult {
     let data = ctx.data.read().await;

@@ -5,6 +5,8 @@ use serenity::{model::channel::Message, prelude::Context};
 #[command]
 #[aliases("foxxo")]
 #[description = "Send cute fox picture stolen from https://randomfox.ca"]
+#[usage("")]
+#[example("")]
 pub async fn fox(ctx: &Context, msg: &Message, _args: Args) -> CommandResult {
     let url = fetch_random_fox_url().await?;
 

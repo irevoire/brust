@@ -17,6 +17,8 @@ impl TypeMapKey for Tg {
 }
 
 #[command]
+#[usage("")]
+#[example("")]
 #[description = r#"Throw a random insult"#]
 pub async fn tg(ctx: &Context, msg: &Message, _args: Args) -> CommandResult {
     let data = ctx.data.read().await;

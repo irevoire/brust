@@ -3,6 +3,10 @@ use serenity::{model::channel::Message, prelude::Context};
 
 #[command]
 #[aliases("roast")]
+#[usage("[select a message | your text]")]
+#[example("")]
+#[example("@machin")]
+#[example("hello")]
 #[description = r#"Roasted kid meme.
 You can:
     - Type your message right after the `!roasted`

@@ -6,6 +6,9 @@ use serenity::prelude::Context;
 use std::collections::{HashMap, HashSet};
 
 #[command]
+#[usage("[select a message] [your text]")]
+#[example("@machin hello")]
+#[example("hello")]
 #[description = r#"React to a message.
 You can:
     - Type your reaction right after the `!react` to react to the previous message

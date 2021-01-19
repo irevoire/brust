@@ -7,6 +7,8 @@ use serenity::{model::channel::Message, prelude::Context};
 
 #[command]
 #[aliases("catto")]
+#[usage("")]
+#[example("")]
 #[description = "Send cute cat picture stolen from http://random.cat"]
 pub async fn cat(ctx: &Context, msg: &Message, _args: Args) -> CommandResult {
     let data = ctx.data.read().await;

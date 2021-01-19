@@ -3,6 +3,8 @@ use serenity::framework::standard::{macros::command, Args, CommandResult};
 use serenity::{model::channel::Message, prelude::Context};
 
 #[command]
+#[usage("[your text]")]
+#[example("fat brain")]
 #[description = r#"Write the following text in emoji"#]
 pub async fn big(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
     let message = crate::utils::find_relative_content(ctx, msg, args).await?;

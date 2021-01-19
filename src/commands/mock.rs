@@ -2,6 +2,10 @@ use serenity::framework::standard::{macros::command, Args, CommandResult};
 use serenity::{model::channel::Message, prelude::Context};
 
 #[command]
+#[usage("[select a message | your text]")]
+#[example("")]
+#[example("@machin")]
+#[example("hello")]
 #[description = r#"Mocking sponge bob meme.
 You can:
     - Type your message right after the `!mock`

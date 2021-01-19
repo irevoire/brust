@@ -4,6 +4,8 @@ use serenity::{model::channel::Message, prelude::Context};
 
 #[command]
 #[description = r#"Choose an argument randomly"#]
+#[usage("[List of things you want to choose from]+")]
+#[example("taco pizza")]
 pub async fn choose(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
     let data = ctx.data.read().await;
 

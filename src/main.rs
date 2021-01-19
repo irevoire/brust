@@ -64,12 +64,11 @@ async fn my_help(
 struct General;
 
 #[group]
-#[commands(cat, dog, spood)]
+#[commands(cat, dog, fox, spood)]
 struct Cute;
 
 #[hook]
 async fn after(ctx: &Context, msg: &Message, command_name: &str, command_result: CommandResult) {
-    println!("HERE");
     if let Err(why) = command_result {
         eprintln!("Command '{}' returned error {:?}", command_name, why);
         let _ = msg.reply(&ctx, why).await;

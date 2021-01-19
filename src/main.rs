@@ -60,7 +60,7 @@ async fn my_help(
 }
 
 #[group]
-#[commands(tg, mock, roasted, big, react, choose, roll)]
+#[commands(tg, mock, roasted, big, react, choose, roll, poll)]
 struct General;
 
 #[group]

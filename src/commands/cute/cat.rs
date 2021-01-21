@@ -18,15 +18,18 @@ pub async fn cat(ctx: &Context, msg: &Message, _args: Args) -> CommandResult {
     let data = ctx.data.read().await;
 
     loop {
-        let mut rng = data.get::<crate::Random>().unwrap().lock().await;
+        let page = {
+            // we want to free the lock as soon as possible
+            let mut rng = data.get::<crate::Random>().unwrap().lock().await;
 
-        let page = fetch_cat_page(&mut *rng).await.map_err(|e| {
-            anyhow!(
-                "Catto express: was not able to deliver you cat: {}\n{}",
-                e,
-                "https://i.redd.it/4q32jedhkgi31.jpg" // crying catto
-            )
-        })?;
+            fetch_cat_page(&mut *rng).await.map_err(|e| {
+                anyhow!(
+                    "Catto express: was not able to deliver you cat: {}\n{}",
+                    e,
+                    "https://i.redd.it/4q32jedhkgi31.jpg" // crying catto
+                )
+            })?
+        };
 
         let url = fetch_url_in_cat_page(page).ok_or(anyhow!(
             "Catto express: your catto got lost in the page :pensive:"

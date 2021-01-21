@@ -2,6 +2,50 @@ use serenity::framework::standard::{Args, CommandError};
 use serenity::model::prelude::UserId;
 use serenity::{model::channel::Message, prelude::Context};
 
+/// You can execute what you want in the block, but it should return a `serenity::model::channel::Message`.
+/// Then an emoji will be sent under the message, and while someone click on this emoji the block
+/// will be repeated.
+/// It also needs to get a `serenity::prelude::Context`.
+/// Here is an example with the command fox:
+/// ```no_run
+/// #[command]
+/// pub async fn fox(ctx: &Context, msg: &Message, _args: Args) -> CommandResult {
+///     crate::repeat_message!(ctx, {
+///         let url = fetch_random_fox_url().await?;
+///
+///         msg.channel_id
+///             .send_files(&ctx, vec![url.as_str()], |m| m.content(&msg.author))
+///             .await?
+///     });
+///
+///     Ok(())
+/// }
+/// ```
+#[macro_export]
+macro_rules! repeat_message {
+    ($ctx:ident, $code:block) => {
+        loop {
+            use serenity::model::channel::ReactionType;
+            let plus_emoji = "➕".parse::<ReactionType>().unwrap();
+
+            let answer = $code;
+
+            answer.react($ctx, plus_emoji.clone()).await?;
+
+            let more = answer
+                .await_reaction($ctx)
+                .timeout(std::time::Duration::from_secs(60 * 10))
+                .filter(move |reaction| reaction.emoji == plus_emoji)
+                .await;
+
+            if more.is_none() {
+                break;
+            }
+
+            println!("sent something from macro");
+        }
+    };
+}
 pub async fn find_relative_content(
     ctx: &Context,
     msg: &Message,

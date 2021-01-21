@@ -2,7 +2,11 @@ use anyhow::{anyhow, bail, Result};
 use select::document::Document;
 use select::predicate::Attr;
 use serenity::framework::standard::{macros::command, Args, CommandResult};
-use serenity::{model::channel::Message, prelude::Context};
+use serenity::{
+    model::channel::{Message, ReactionType},
+    prelude::Context,
+};
+use std::time::Duration;
 
 #[command]
 #[aliases("doggo")]
@@ -13,15 +17,32 @@ use serenity::{model::channel::Message, prelude::Context};
 #[example("retriever")]
 #[example("bernese mountain")]
 pub async fn dog(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
-    let url = if args.len() != 0 {
-        fetch_dog_breed_url(args.raw().collect::<Vec<&str>>()).await
-    } else {
-        fetch_random_dog_url().await
-    };
+    loop {
+        let url = if args.len() != 0 {
+            fetch_dog_breed_url(args.raw().collect::<Vec<&str>>()).await
+        } else {
+            fetch_random_dog_url().await
+        };
 
-    msg.channel_id
-        .send_files(&ctx, vec![url?.as_str()], |m| m.content(&msg.author))
-        .await?;
+        let answer = msg
+            .channel_id
+            .send_files(&ctx, vec![url?.as_str()], |m| m.content(&msg.author))
+            .await?;
+
+        let plus_emoji = "➕".parse::<ReactionType>().unwrap();
+
+        answer.react(ctx, plus_emoji.clone()).await?;
+
+        let more = answer
+            .await_reaction(ctx)
+            .timeout(Duration::from_secs(60 * 10))
+            .filter(move |reaction| reaction.emoji == plus_emoji)
+            .await;
+
+        if more.is_none() {
+            break;
+        }
+    }
 
     Ok(())
 }

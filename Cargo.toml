@@ -5,8 +5,8 @@ authors = ["Thomas Campistron <irevoire@hotmail.fr>"]
 edition = "2018"
 
 [dependencies]
-tokio = { version = "0.2.24", features = ["full"] }
-serenity = "0.9.3"
+tokio = { version = "1", features = ["full"] }
+serenity = { version = "0.10.2", features = ["collector"] }
 select = "*"
 kankyo = "*"
 rand = { version = "0.8.0", features = ["small_rng"] }

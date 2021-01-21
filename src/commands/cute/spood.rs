@@ -3,7 +3,11 @@ use rand::prelude::*;
 use select::document::Document;
 use select::predicate::Attr;
 use serenity::framework::standard::{macros::command, Args, CommandResult};
-use serenity::{model::channel::Message, prelude::Context};
+use serenity::{
+    model::channel::{Message, ReactionType},
+    prelude::Context,
+};
+use std::time::Duration;
 
 #[command]
 #[aliases("spoddo")]
@@ -12,23 +16,42 @@ use serenity::{model::channel::Message, prelude::Context};
 #[description = "Send cute spood pictures stolen from https://spiderid.com"]
 pub async fn spood(ctx: &Context, msg: &Message, _args: Args) -> CommandResult {
     let data = ctx.data.read().await;
-    let mut rng = data.get::<crate::Random>().unwrap().lock().await;
 
-    let page = fetch_spood_page(&mut *rng).await.map_err(|e| {
-        anyhow!(
-            "Spoddo express: was not able to deliver you spood: {}\n{}",
-            e,
-            "https://cdn.drawception.com/drawings/gB8gGBpkSW.png" // crying spoddo
-        )
-    })?;
+    loop {
+        let mut rng = data.get::<crate::Random>().unwrap().lock().await;
 
-    let url = fetch_url_in_spood_page(page, &mut *rng).ok_or(anyhow!(
-        "Spoddo express: your spood got lost in the page :pensive:"
-    ))?;
+        let page = fetch_spood_page(&mut *rng).await.map_err(|e| {
+            anyhow!(
+                "Spoddo express: was not able to deliver you spood: {}\n{}",
+                e,
+                "https://cdn.drawception.com/drawings/gB8gGBpkSW.png" // crying spoddo
+            )
+        })?;
 
-    msg.channel_id
-        .send_files(&ctx, vec![url.as_str()], |m| m.content(&msg.author))
-        .await?;
+        let url = fetch_url_in_spood_page(page, &mut *rng).ok_or(anyhow!(
+            "Spoddo express: your spood got lost in the page :pensive:"
+        ))?;
+
+        let answer = msg
+            .channel_id
+            .send_files(&ctx, vec![url.as_str()], |m| m.content(&msg.author))
+            .await?;
+
+        let plus_emoji = "➕".parse::<ReactionType>().unwrap();
+
+        answer.react(ctx, plus_emoji.clone()).await?;
+
+        let more = answer
+            .await_reaction(ctx)
+            .timeout(Duration::from_secs(60 * 10))
+            .filter(move |reaction| reaction.emoji == plus_emoji)
+            .await;
+
+        if more.is_none() {
+            break;
+        }
+    }
+
     Ok(())
 }
 

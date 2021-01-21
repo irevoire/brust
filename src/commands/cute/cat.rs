@@ -3,7 +3,11 @@ use rand::Rng;
 use select::document::Document;
 use select::predicate::Attr;
 use serenity::framework::standard::{macros::command, Args, CommandResult};
-use serenity::{model::channel::Message, prelude::Context};
+use serenity::{
+    model::channel::{Message, ReactionType},
+    prelude::Context,
+};
+use std::time::Duration;
 
 #[command]
 #[aliases("catto")]
@@ -12,23 +16,42 @@ use serenity::{model::channel::Message, prelude::Context};
 #[description = "Send cute cat picture stolen from http://random.cat"]
 pub async fn cat(ctx: &Context, msg: &Message, _args: Args) -> CommandResult {
     let data = ctx.data.read().await;
-    let mut rng = data.get::<crate::Random>().unwrap().lock().await;
 
-    let page = fetch_cat_page(&mut *rng).await.map_err(|e| {
-        anyhow!(
-            "Catto express: was not able to deliver you cat: {}\n{}",
-            e,
-            "https://i.redd.it/4q32jedhkgi31.jpg" // crying catto
-        )
-    })?;
+    loop {
+        let mut rng = data.get::<crate::Random>().unwrap().lock().await;
 
-    let url = fetch_url_in_cat_page(page).ok_or(anyhow!(
-        "Catto express: your catto got lost in the page :pensive:"
-    ))?;
+        let page = fetch_cat_page(&mut *rng).await.map_err(|e| {
+            anyhow!(
+                "Catto express: was not able to deliver you cat: {}\n{}",
+                e,
+                "https://i.redd.it/4q32jedhkgi31.jpg" // crying catto
+            )
+        })?;
 
-    msg.channel_id
-        .send_files(&ctx, vec![url.as_str()], |m| m.content(&msg.author))
-        .await?;
+        let url = fetch_url_in_cat_page(page).ok_or(anyhow!(
+            "Catto express: your catto got lost in the page :pensive:"
+        ))?;
+
+        let answer = msg
+            .channel_id
+            .send_files(&ctx, vec![url.as_str()], |m| m.content(&msg.author))
+            .await?;
+
+        let plus_emoji = "➕".parse::<ReactionType>().unwrap();
+
+        answer.react(ctx, plus_emoji.clone()).await?;
+
+        let more = answer
+            .await_reaction(ctx)
+            .timeout(Duration::from_secs(60 * 10))
+            .filter(move |reaction| reaction.emoji == plus_emoji)
+            .await;
+
+        if more.is_none() {
+            break;
+        }
+    }
+
     Ok(())
 }
 

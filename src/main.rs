@@ -13,6 +13,7 @@ use serenity::{
         standard::{help_commands, Args, CommandGroup, CommandResult, HelpOptions},
         StandardFramework,
     },
+    http::Http,
     model::gateway::Ready,
     model::prelude::*,
     prelude::*,
@@ -20,7 +21,6 @@ use serenity::{
 use std::collections::HashSet;
 use std::env;
 use std::sync::Arc;
-use tokio::sync::Mutex;
 
 struct ShardManagerContainer;
 
@@ -80,17 +80,40 @@ async fn main() {
     kankyo::load(false).expect("Failed to load .env file");
 
     let token = env::var("DISCORD_TOKEN").expect("Expected a token in the environment");
+    let http = Http::new_with_token(&token);
+
+    // We will fetch your bot's owners and id
+    let (owners, bot_id) = match http.get_current_application_info().await {
+        Ok(info) => {
+            let mut owners = HashSet::new();
+            if let Some(team) = info.team {
+                owners.insert(team.owner_user_id);
+            } else {
+                owners.insert(info.owner.id);
+            }
+            match http.get_current_user().await {
+                Ok(bot_id) => (owners, bot_id.id),
+                Err(why) => panic!("Could not access the bot id: {:?}", why),
+            }
+        }
+        Err(why) => panic!("Could not access application info: {:?}", why),
+    };
 
     let framework = StandardFramework::new()
-        .configure(|c| c.prefix("!").delimiters(vec![", ", ",", " "]))
+        .configure(|c| {
+            c.prefix("!")
+                .on_mention(Some(bot_id))
+                .owners(owners)
+                .delimiters(vec![", ", ",", " "])
+        })
         .group(&GENERAL_GROUP)
         .group(&CUTE_GROUP)
         .after(after)
         .help(&MY_HELP);
 
     let mut client = Client::builder(&token)
-        .framework(framework)
         .event_handler(Handler)
+        .framework(framework)
         .await
         .expect("Err creating client");
 

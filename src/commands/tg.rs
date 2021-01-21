@@ -1,8 +1,8 @@
 use rand::seq::SliceRandom;
 use rand::Rng;
 use serenity::framework::standard::{macros::command, Args, CommandResult};
+use serenity::prelude::Mutex;
 use std::sync::Arc;
-use tokio::sync::Mutex;
 
 use serenity::{
     model::channel::Message,

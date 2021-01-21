@@ -32,17 +32,18 @@ macro_rules! repeat_message {
 
             answer.react($ctx, plus_emoji.clone()).await?;
 
+            let tmp_plus_emoji = plus_emoji.clone();
+
             let more = answer
                 .await_reaction($ctx)
                 .timeout(std::time::Duration::from_secs(60 * 10))
-                .filter(move |reaction| reaction.emoji == plus_emoji)
+                .filter(move |reaction| reaction.emoji == tmp_plus_emoji)
                 .await;
 
+            answer.delete_reaction_emoji($ctx, plus_emoji).await?;
             if more.is_none() {
                 break;
             }
-
-            println!("sent something from macro");
         }
     };
 }

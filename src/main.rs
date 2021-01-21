@@ -64,7 +64,7 @@ async fn my_help(
 struct General;
 
 #[group]
-#[commands(cat, dog, fox, spood)]
+#[commands(cat, dog, fox, spood, frog)]
 struct Cute;
 
 #[hook]

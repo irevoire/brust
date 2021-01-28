@@ -291,6 +291,7 @@ fn generate_equivalence() -> HashMap<char, Vec<String>> {
     base.insert('×', vec!["✖️".to_string()]);
     base.insert('+', vec!["➕".to_string()]);
     base.insert('÷', vec!["➗".to_string()]);
+    base.insert("'", vec!["🐃".to_string()]);
 
     base
 }

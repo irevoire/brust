@@ -76,7 +76,7 @@ pub async fn find_relative_content(
 
 pub fn unicode_to_safe_ascii(c: char) -> Option<char> {
     match c {
-        'a'..='z' | 'A'..='Z' | '0'..='9' | ' ' | '.' | '!' | '?' | '*' | '#' => {
+        'a'..='z' | 'A'..='Z' | '0'..='9' | ' ' | '.' | '!' | '?' | '*' | '#' | "'" => {
             Some(c.to_ascii_lowercase())
         }
         'á' | 'à' | 'â' | 'ä' | 'Á' | 'À' | 'Â' | 'Ä' => Some('a'),
@@ -85,6 +85,8 @@ pub fn unicode_to_safe_ascii(c: char) -> Option<char> {
         'ó' | 'ò' | 'ô' | 'ö' | 'Ó' | 'Ò' | 'Ô' | 'Ö' => Some('o'),
         'ú' | 'ù' | 'û' | 'ü' | 'Ú' | 'Ù' | 'Û' | 'Ü' => Some('u'),
         'ç' | 'Ç' => Some('c'),
+        '«' | '»' | '“' | '”' | '„' => Some('"'),
+        '’' => Some("'"),
         _ => None,
     }
 }

@@ -13,27 +13,21 @@ use serenity::{model::channel::Message, prelude::Context};
 pub async fn spood(ctx: &Context, msg: &Message, _args: Args) -> CommandResult {
     let data = ctx.data.read().await;
 
-    crate::repeat_message!(ctx, {
-        let url = {
-            // we want to free the lock as soon as possible
-            let mut rng = data.get::<crate::Random>().unwrap().lock().await;
+    crate::repeat_message!(ctx, msg, {
+        // we want to free the lock as soon as possible
+        let mut rng = data.get::<crate::Random>().unwrap().lock().await;
 
-            let page = fetch_spood_page(&mut *rng).await.map_err(|e| {
-                anyhow!(
-                    "Spoddo express: was not able to deliver you spood: {}\n{}",
-                    e,
-                    "https://cdn.drawception.com/drawings/gB8gGBpkSW.png" // crying spoddo
-                )
-            })?;
+        let page = fetch_spood_page(&mut *rng).await.map_err(|e| {
+            anyhow!(
+                "Spoddo express: was not able to deliver you spood: {}\n{}",
+                e,
+                "https://cdn.drawception.com/drawings/gB8gGBpkSW.png" // crying spoddo
+            )
+        })?;
 
-            fetch_url_in_spood_page(page, &mut *rng).ok_or(anyhow!(
-                "Spoddo express: your spood got lost in the page :pensive:"
-            ))?
-        };
-
-        msg.channel_id
-            .send_files(&ctx, vec![url.as_str()], |m| m.content(&msg.author))
-            .await?
+        fetch_url_in_spood_page(page, &mut *rng).ok_or(anyhow!(
+            "Spoddo express: your spood got lost in the page :pensive:"
+        ))?
     });
 
     Ok(())

@@ -23,12 +23,18 @@ use serenity::{model::channel::Message, prelude::Context};
 /// ```
 #[macro_export]
 macro_rules! repeat_message {
-    ($ctx:ident, $code:block) => {
+    ($ctx:ident, $msg:ident, $code:block) => {
+        let mut author = $msg.author.clone();
+
         loop {
             use serenity::model::channel::ReactionType;
             let plus_emoji = "➕".parse::<ReactionType>().unwrap();
 
-            let answer = $code;
+            let url = $code;
+            let answer = $msg
+                .channel_id
+                .send_files(&$ctx, vec![url.as_str()], |m| m.content(&author))
+                .await?;
 
             answer.react($ctx, plus_emoji.clone()).await?;
 
@@ -43,6 +49,15 @@ macro_rules! repeat_message {
             answer.delete_reaction_emoji($ctx, plus_emoji).await?;
             if more.is_none() {
                 break;
+            } else {
+                author = more
+                    .unwrap()
+                    .as_inner_ref()
+                    .user_id
+                    .unwrap()
+                    .to_user($ctx)
+                    .await?
+                    .clone();
             }
         }
     };

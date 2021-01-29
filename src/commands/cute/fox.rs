@@ -8,13 +8,7 @@ use serenity::{model::channel::Message, prelude::Context};
 #[usage("")]
 #[example("")]
 pub async fn fox(ctx: &Context, msg: &Message, _args: Args) -> CommandResult {
-    crate::repeat_message!(ctx, {
-        let url = fetch_random_fox_url().await?;
-
-        msg.channel_id
-            .send_files(&ctx, vec![url.as_str()], |m| m.content(&msg.author))
-            .await?
-    });
+    crate::repeat_message!(ctx, msg, { fetch_random_fox_url().await? });
 
     Ok(())
 }

@@ -13,7 +13,7 @@ use serenity::{model::channel::Message, prelude::Context};
 pub async fn cat(ctx: &Context, msg: &Message, _args: Args) -> CommandResult {
     let data = ctx.data.read().await;
 
-    crate::repeat_message!(ctx, {
+    crate::repeat_message!(ctx, msg, {
         let page = {
             // we want to free the lock as soon as possible
             let mut rng = data.get::<crate::Random>().unwrap().lock().await;
@@ -27,13 +27,9 @@ pub async fn cat(ctx: &Context, msg: &Message, _args: Args) -> CommandResult {
             })?
         };
 
-        let url = fetch_url_in_cat_page(page).ok_or(anyhow!(
+        fetch_url_in_cat_page(page).ok_or(anyhow!(
             "Catto express: your catto got lost in the page :pensive:"
-        ))?;
-
-        msg.channel_id
-            .send_files(&ctx, vec![url.as_str()], |m| m.content(&msg.author))
-            .await?
+        ))?
     });
 
     Ok(())

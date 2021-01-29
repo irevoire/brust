@@ -10,21 +10,17 @@ use serenity::{model::channel::Message, prelude::Context};
 pub async fn frog(ctx: &Context, msg: &Message, _args: Args) -> CommandResult {
     let data = ctx.data.read().await;
 
-    crate::repeat_message!(ctx, {
+    crate::repeat_message!(ctx, msg, {
         let no = {
             // we want to free the lock as soon as possible
             let mut rng = data.get::<crate::Random>().unwrap().lock().await;
             rng.gen_range(1..=54)
         };
 
-        let url = format!(
+        format!(
             "http://www.allaboutfrogs.org/funstuff/random/00{:02}.jpg",
             no
-        );
-
-        msg.channel_id
-            .send_files(&ctx, vec![url.as_str()], |m| m.content(&msg.author))
-            .await?
+        )
     });
 
     Ok(())

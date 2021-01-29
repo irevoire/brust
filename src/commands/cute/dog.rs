@@ -13,16 +13,12 @@ use serenity::{model::channel::Message, prelude::Context};
 #[example("retriever")]
 #[example("bernese mountain")]
 pub async fn dog(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
-    crate::repeat_message!(ctx, {
-        let url = if args.len() != 0 {
+    crate::repeat_message!(ctx, msg, {
+        if args.len() != 0 {
             fetch_dog_breed_url(args.raw().collect::<Vec<&str>>()).await
         } else {
             fetch_random_dog_url().await
-        };
-
-        msg.channel_id
-            .send_files(&ctx, vec![url?.as_str()], |m| m.content(&msg.author))
-            .await?
+        }?
     });
 
     Ok(())

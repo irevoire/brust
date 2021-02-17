@@ -1,5 +1,5 @@
 use crate::utils::unicode_to_safe_ascii;
-use anyhow::Result;
+use anyhow::{anyhow, Result};
 use serenity::framework::standard::{macros::command, Args, CommandResult};
 use serenity::model::prelude::{Message, ReactionType, UserId};
 use serenity::prelude::Context;
@@ -54,12 +54,7 @@ pub async fn react(ctx: &Context, msg: &Message, mut args: Args) -> CommandResul
     for c in rest.chars() {
         let emoji = match char_to_emoji(c, &already_used_emoji) {
             Some(c) => c,
-            None => {
-                msg.react(&ctx, '🇳').await?;
-                msg.react(&ctx, '🇹').await?;
-                msg.react(&ctx, '🇲').await?;
-                return Ok(());
-            }
+            None => Err(anyhow!("Could not print this character: {}", c))?,
         };
         message
             .react(&ctx, emoji.parse::<ReactionType>().unwrap())

@@ -62,8 +62,23 @@ async fn my_help(
 #[hook]
 async fn after(ctx: &Context, msg: &Message, command_name: &str, command_result: CommandResult) {
     if let Err(why) = command_result {
+        let speech_bubble_emoji = "💬".parse::<ReactionType>().unwrap();
+
         eprintln!("Command '{}' returned error {:?}", command_name, why);
-        let _ = msg.reply(&ctx, why).await;
+
+        let _err = msg.react(ctx, speech_bubble_emoji.clone()).await;
+
+        let tmp_emoji = speech_bubble_emoji.clone();
+
+        let want_error_msg = msg
+            .await_reaction(ctx)
+            .timeout(std::time::Duration::from_secs(60 * 10))
+            .filter(move |reaction| reaction.emoji == tmp_emoji)
+            .await;
+        let _err = msg.delete_reaction_emoji(ctx, speech_bubble_emoji).await;
+        if want_error_msg.is_some() {
+            let _ = msg.reply(&ctx, why).await;
+        }
     }
 }
 

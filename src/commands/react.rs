@@ -286,7 +286,15 @@ fn generate_equivalence() -> HashMap<char, Vec<String>> {
         vec!["❓".to_string(), "❔".to_string(), "⁉️".to_string()],
     );
     base.insert('#', vec!["#️⃣".to_string()]);
-    base.insert('*', vec!["*️⃣".to_string(), "⚕️".to_string(), "✳️".to_string()]);
+    base.insert(
+        '*',
+        vec![
+            "*️⃣".to_string(),
+            "💮".to_string(),
+            "⚕️".to_string(),
+            "✳️".to_string(),
+        ],
+    );
     base.insert('×', vec!["✖️".to_string()]);
     base.insert('+', vec!["➕".to_string()]);
     base.insert('÷', vec!["➗".to_string()]);

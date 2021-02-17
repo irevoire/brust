@@ -1,3 +1,5 @@
+use serenity::framework::standard::macros::group;
+
 mod big;
 mod choose;
 mod cute;
@@ -8,12 +10,16 @@ mod roasted;
 mod roll;
 mod tg;
 
-pub use big::*;
-pub use choose::*;
+use big::*;
+use choose::*;
 pub use cute::*;
-pub use mock::*;
-pub use poll::*;
-pub use react::*;
-pub use roasted::*;
-pub use roll::*;
+use mock::*;
+use poll::*;
+use react::*;
+use roasted::*;
+use roll::*;
 pub use tg::*;
+
+#[group]
+#[commands(tg, mock, roasted, big, react, choose, roll, poll)]
+struct General;

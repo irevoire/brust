@@ -9,7 +9,7 @@ use serenity::{
     async_trait,
     client::bridge::gateway::ShardManager,
     framework::{
-        standard::macros::{group, help, hook},
+        standard::macros::{help, hook},
         standard::{help_commands, Args, CommandGroup, CommandResult, HelpOptions},
         StandardFramework,
     },
@@ -58,14 +58,6 @@ async fn my_help(
     let _ = help_commands::with_embeds(context, msg, args, help_options, groups, owners).await;
     Ok(())
 }
-
-#[group]
-#[commands(tg, mock, roasted, big, react, choose, roll, poll)]
-struct General;
-
-#[group]
-#[commands(cat, dog, fox, spood, frog)]
-struct Cute;
 
 #[hook]
 async fn after(ctx: &Context, msg: &Message, command_name: &str, command_result: CommandResult) {

@@ -55,8 +55,9 @@ pub async fn react(ctx: &Context, msg: &Message, mut args: Args) -> CommandResul
         let emoji = match char_to_emoji(c, &already_used_emoji) {
             Some(c) => c,
             None => {
-                msg.react(&ctx, '🇵').await?;
-                msg.react(&ctx, '🇩').await?;
+                msg.react(&ctx, '🇳').await?;
+                msg.react(&ctx, '🇹').await?;
+                msg.react(&ctx, '🇲').await?;
                 return Ok(());
             }
         };
@@ -131,7 +132,6 @@ fn generate_equivalence() -> HashMap<char, Vec<String>> {
             "🇮".to_string(),
             "ℹ️".to_string(),
             "📍".to_string(),
-            "❕".to_string(),
             "💈".to_string(),
         ],
     );
@@ -207,6 +207,7 @@ fn generate_equivalence() -> HashMap<char, Vec<String>> {
         vec![
             "🇻".to_string(),
             "♈".to_string(),
+            "🔽".to_string(),
             "🇺".to_string(),
             "⛎".to_string(),
         ],
@@ -237,13 +238,11 @@ fn generate_equivalence() -> HashMap<char, Vec<String>> {
         '0',
         vec![
             "0️⃣".to_string(),
-            "0️⃣".to_string(),
             "🔃".to_string(),
             "🅾️".to_string(),
             "🇴".to_string(),
             "🔄".to_string(),
             "🔁".to_string(),
-            "🅱️".to_string(),
         ],
     );
     base.insert('1', vec!["1️⃣".to_string()]);

@@ -22,7 +22,7 @@ pub async fn roll(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult
     for term in terms {
         let step = parser.and(&term, &mut *rng)?;
         match term {
-            Term::Roll(_) => res.push(format!("{}", step)),
+            Term::Roll(_) => res.push(format!("{:?}", step)),
             Term::Binop(op) => res.push(op.to_string()),
         }
     }
@@ -56,12 +56,12 @@ impl std::fmt::Display for Roll {
 
 impl Roll {
     /// Generate a value for the roll
-    pub fn roll(&self, rng: &mut impl Rng) -> i64 {
+    pub fn roll(&self, rng: &mut impl Rng) -> Vec<i64> {
         match self {
-            Roll::Dice(rolls, faces) => {
-                (0..*rolls).fold(0, |acc, _| acc + rng.gen_range(1..faces + 1) as i64)
-            }
-            Roll::Const(c) => *c as i64,
+            Roll::Dice(rolls, faces) => (0..*rolls)
+                .map(|_| rng.gen_range(1..faces + 1) as i64)
+                .collect(),
+            Roll::Const(c) => vec![*c as i64],
         }
     }
 }
@@ -150,7 +150,7 @@ struct Parser {
 }
 
 impl Parser {
-    pub fn and(&mut self, term: &Term, rng: &mut impl Rng) -> anyhow::Result<i64> {
+    pub fn and(&mut self, term: &Term, rng: &mut impl Rng) -> anyhow::Result<Vec<i64>> {
         match term {
             Term::Binop(binop) => {
                 if self.binop.is_some() || self.total.is_none() {
@@ -160,7 +160,7 @@ impl Parser {
                     );
                 }
                 self.binop = Some(*binop);
-                self.total.ok_or(anyhow!("Bug"))
+                Ok(vec![self.total.unwrap()])
             }
             Term::Roll(roll) => {
                 let res = roll.roll(rng);
@@ -171,10 +171,15 @@ impl Parser {
                         roll
                     );
                 } else if self.total.is_none() {
-                    self.total = Some(res);
+                    self.total = Some(res.iter().sum());
                     Ok(res)
                 } else {
-                    self.total = Some(self.binop.take().unwrap().run(self.total.unwrap(), res));
+                    self.total = Some(
+                        self.binop
+                            .take()
+                            .unwrap()
+                            .run(self.total.unwrap(), res.iter().sum()),
+                    );
                     Ok(res)
                 }
             }

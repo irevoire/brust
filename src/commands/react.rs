@@ -113,8 +113,9 @@ async fn get_last_message(ctx: &Context, msg: &Message) -> Result<Message> {
 fn char_to_emoji(c: char, banned_emoji: &HashSet<String>) -> Option<String> {
     let base = generate_equivalence(); // we hope rustc will optimize all this shit until const fn get stabilized
     let c = match unicode_to_safe_ascii(c) {
-        None => return None,
         Some(c) => c,
+        None if base.contains_key(&c) => c,
+        None => return None,
     };
 
     let equivalence = base.get(&c);
@@ -329,6 +330,8 @@ fn generate_equivalence() -> HashMap<char, Vec<String>> {
     );
     base.insert('×', vec!["✖️".to_string()]);
     base.insert('+', vec!["➕".to_string()]);
+    base.insert('-', vec!["➖".to_string()]);
+    base.insert('−', vec!["➖".to_string()]);
     base.insert('÷', vec!["➗".to_string()]);
     base.insert('\'', vec!["🐃".to_string()]);
 

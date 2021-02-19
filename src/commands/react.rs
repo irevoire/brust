@@ -42,8 +42,8 @@ pub async fn react(ctx: &Context, msg: &Message, mut args: Args) -> CommandResul
     };
     let rest = args.rest();
 
-    let mut already_used_emoji = HashSet::new();
     // get all the already used emoji
+    let mut already_used_emoji = HashSet::new();
     for reaction in message.reactions.iter() {
         match &reaction.reaction_type {
             ReactionType::Unicode(e) => already_used_emoji.insert(e.clone()),
@@ -54,6 +54,7 @@ pub async fn react(ctx: &Context, msg: &Message, mut args: Args) -> CommandResul
     for c in rest.chars() {
         let emoji = match char_to_emoji(c, &already_used_emoji) {
             Some(c) => c,
+            None if c.to_string().parse::<ReactionType>().is_ok() => c.to_string(),
             None => Err(anyhow!("Could not print this character: {}", c))?,
         };
         message

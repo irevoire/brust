@@ -40,7 +40,7 @@ pub async fn react(ctx: &Context, msg: &Message, mut args: Args) -> CommandResul
                 .clone();
         }
     };
-    let rest = args.rest();
+    let rest = args.rest().to_lowercase();
 
     // get all the already used emoji
     let mut already_used_emoji = HashSet::new();
@@ -50,6 +50,8 @@ pub async fn react(ctx: &Context, msg: &Message, mut args: Args) -> CommandResul
             _ => false, // useless
         };
     }
+
+    let rest = convert_multiple_chars_to_emoji(&rest);
 
     for c in rest.chars() {
         let emoji = match char_to_emoji(c, &already_used_emoji) {
@@ -64,6 +66,40 @@ pub async fn react(ctx: &Context, msg: &Message, mut args: Args) -> CommandResul
     }
     msg.delete(&ctx).await?;
     Ok(())
+}
+
+pub fn convert_multiple_chars_to_emoji(message: &str) -> String {
+    let equivalence = [
+        ("1234", "🔢"),
+        ("cool", "🆒"),
+        ("free", "🆓"),
+        ("abcd", "🔠"),
+        ("100", "💯"),
+        ("abc", "🔤"),
+        ("zzz", "💤"),
+        ("sos", "🆘"),
+        ("up!", "🆙"),
+        ("new", "🆕"),
+        ("ab", "🆎"),
+        ("ng", "🆖"),
+        ("vs", "🆚"),
+        ("cl", "🆑"),
+        ("ok", "🆗"),
+        ("id", "🆔"),
+        ("10", "🔟"),
+    ];
+
+    let mut result = message.to_string();
+
+    for (base, emoji) in equivalence.iter() {
+        if !result.contains(emoji) {
+            if let Some((start, end)) = result.split_once(base) {
+                result = format!("{}{}{}", start, emoji, end);
+            }
+        }
+    }
+
+    result
 }
 
 async fn get_last_message(ctx: &Context, msg: &Message) -> Result<Message> {

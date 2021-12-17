@@ -1,5 +1,3 @@
-#![feature(str_split_once)]
-
 mod commands;
 mod imgflip;
 mod utils;

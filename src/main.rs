@@ -14,12 +14,12 @@ use serenity::{
         StandardFramework,
     },
     http::Http,
+    model::gateway::Ready,
     model::interactions::{
         application_command::{ApplicationCommand, ApplicationCommandOptionType},
-        Interaction, InteractionResponseType,
+        Interaction,
     },
     model::prelude::*,
-    model::{gateway::Ready, interactions::application_command::ApplicationCommandInteraction},
     prelude::*,
 };
 use std::collections::HashSet;
@@ -32,33 +32,7 @@ impl TypeMapKey for ShardManagerContainer {
     type Value = Arc<Mutex<ShardManager>>;
 }
 
-struct Handler;
-
-impl Handler {
-    async fn handle_uwuify(&self, ctx: Context, command: ApplicationCommandInteraction) {
-        let option = &command.data.options[0];
-
-        let value = option
-            .value
-            .as_ref()
-            .expect("text is a required argument")
-            .as_str()
-            .expect("text is always a String type");
-
-        let uwud = uwuifier::uwuify_str_sse(value);
-
-        if let Err(e) = command
-            .create_interaction_response(&ctx.http, |response| {
-                response
-                    .kind(InteractionResponseType::ChannelMessageWithSource)
-                    .interaction_response_data(|data| data.content(uwud))
-            })
-            .await
-        {
-            println!("Unexpected error while interpreting a slash command: {}", e);
-        }
-    }
-}
+pub struct Handler;
 
 #[async_trait]
 impl EventHandler for Handler {
@@ -80,11 +54,26 @@ impl EventHandler for Handler {
         .await
         .unwrap();
 
+        ApplicationCommand::create_global_application_command(&ctx, |command| {
+            command
+                .name("big")
+                .description("Makes your text 🅱️  🇮 🇬")
+                .create_option(|option| {
+                    option
+                        .name("text")
+                        .description("your text")
+                        .kind(ApplicationCommandOptionType::String)
+                        .required(true)
+                })
+        })
+        .await
+        .unwrap();
+
         for command in ApplicationCommand::get_global_application_commands(&ctx)
             .await
             .unwrap()
         {
-            if command.name == "uwu" {
+            if ["uwu", "big"].contains(&command.name.as_ref()) {
                 continue;
             }
             ApplicationCommand::delete_global_application_command(&ctx, command.id)
@@ -95,11 +84,17 @@ impl EventHandler for Handler {
 
     async fn interaction_create(&self, ctx: Context, interaction: Interaction) {
         if let Interaction::ApplicationCommand(command) = interaction {
-            match command.data.name.as_str() {
+            let command_name = command.data.name.to_string();
+            let result = match command_name.as_str() {
                 "uwu" => self.handle_uwuify(ctx, command).await,
+                "big" => self.handle_big(ctx, command).await,
                 _ => {
                     println!("unknown interaction");
+                    Ok(())
                 }
+            };
+            if let Err(e) = result {
+                println!("Unexpected error with command {}:\n{}", command_name, e);
             }
         }
     }

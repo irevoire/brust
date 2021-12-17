@@ -1,5 +1,8 @@
 use crate::utils::unicode_to_safe_ascii;
+use anyhow::{anyhow, Result};
 use serenity::framework::standard::{macros::command, Args, CommandResult};
+use serenity::model::interactions::application_command::ApplicationCommandInteraction;
+use serenity::model::interactions::InteractionResponseType;
 use serenity::{model::channel::Message, prelude::Context};
 
 #[command]
@@ -9,14 +12,44 @@ use serenity::{model::channel::Message, prelude::Context};
 pub async fn big(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
     let message = crate::utils::find_relative_content(ctx, msg, args).await?;
 
-    let new = message
-        .chars()
-        .map(|c| format!("{} ", char_to_emoji(c).unwrap_or(c.to_string())))
-        .collect::<String>();
-
-    msg.channel_id.say(&ctx, new).await?;
+    msg.channel_id.say(&ctx, biggify(&message)).await?;
 
     Ok(())
+}
+
+impl crate::Handler {
+    pub async fn handle_big(
+        &self,
+        ctx: Context,
+        command: ApplicationCommandInteraction,
+    ) -> Result<()> {
+        let option = &command.data.options[0];
+
+        let value = option
+            .value
+            .as_ref()
+            .ok_or(anyhow!("text is a required argument"))?
+            .as_str()
+            .ok_or(anyhow!("text is always a String type"))?;
+
+        let uwud = biggify(value);
+
+        command
+            .create_interaction_response(&ctx.http, |response| {
+                response
+                    .kind(InteractionResponseType::ChannelMessageWithSource)
+                    .interaction_response_data(|data| data.content(uwud))
+            })
+            .await?;
+
+        Ok(())
+    }
+}
+
+fn biggify(text: &str) -> String {
+    text.chars()
+        .map(|c| format!("{} ", char_to_emoji(c).unwrap_or(c.to_string())))
+        .collect()
 }
 
 pub fn char_to_emoji(c: char) -> Option<String> {

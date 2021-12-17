@@ -14,8 +14,12 @@ use serenity::{
         StandardFramework,
     },
     http::Http,
-    model::gateway::Ready,
+    model::interactions::{
+        application_command::{ApplicationCommand, ApplicationCommandOptionType},
+        Interaction, InteractionResponseType,
+    },
     model::prelude::*,
+    model::{gateway::Ready, interactions::application_command::ApplicationCommandInteraction},
     prelude::*,
 };
 use std::collections::HashSet;
@@ -30,10 +34,74 @@ impl TypeMapKey for ShardManagerContainer {
 
 struct Handler;
 
+impl Handler {
+    async fn handle_uwuify(&self, ctx: Context, command: ApplicationCommandInteraction) {
+        let option = &command.data.options[0];
+
+        let value = option
+            .value
+            .as_ref()
+            .expect("text is a required argument")
+            .as_str()
+            .expect("text is always a String type");
+
+        let uwud = uwuifier::uwuify_str_sse(value);
+
+        if let Err(e) = command
+            .create_interaction_response(&ctx.http, |response| {
+                response
+                    .kind(InteractionResponseType::ChannelMessageWithSource)
+                    .interaction_response_data(|data| data.content(uwud))
+            })
+            .await
+        {
+            println!("Unexpected error while interpreting a slash command: {}", e);
+        }
+    }
+}
+
 #[async_trait]
 impl EventHandler for Handler {
-    async fn ready(&self, _: Context, ready: Ready) {
+    async fn ready(&self, ctx: Context, ready: Ready) {
         println!("{} is connected!", ready.user.name);
+
+        ApplicationCommand::create_global_application_command(&ctx, |command| {
+            command
+                .name("uwu")
+                .description("uωu")
+                .create_option(|option| {
+                    option
+                        .name("owo")
+                        .description("youw text")
+                        .kind(ApplicationCommandOptionType::String)
+                        .required(true)
+                })
+        })
+        .await
+        .unwrap();
+
+        for command in ApplicationCommand::get_global_application_commands(&ctx)
+            .await
+            .unwrap()
+        {
+            if command.name == "uwu" {
+                continue;
+            }
+            ApplicationCommand::delete_global_application_command(&ctx, command.id)
+                .await
+                .unwrap();
+        }
+    }
+
+    async fn interaction_create(&self, ctx: Context, interaction: Interaction) {
+        if let Interaction::ApplicationCommand(command) = interaction {
+            match command.data.name.as_str() {
+                "uwu" => self.handle_uwuify(ctx, command).await,
+                _ => {
+                    println!("unknown interaction");
+                }
+            }
+        }
     }
 }
 
@@ -121,6 +189,7 @@ async fn main() {
     let mut client = Client::builder(&token)
         .event_handler(Handler)
         .framework(framework)
+        .application_id(bot_id.0)
         .await
         .expect("Err creating client");
 

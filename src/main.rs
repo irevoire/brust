@@ -39,6 +39,8 @@ impl EventHandler for Handler {
     async fn ready(&self, ctx: Context, ready: Ready) {
         println!("{} is connected!", ready.user.name);
 
+        /*
+        TODO: buy a better server which handle SIMD
         ApplicationCommand::create_global_application_command(&ctx, |command| {
             command
                 .name("uwu")
@@ -53,6 +55,7 @@ impl EventHandler for Handler {
         })
         .await
         .unwrap();
+        */
 
         ApplicationCommand::create_global_application_command(&ctx, |command| {
             command
@@ -73,7 +76,8 @@ impl EventHandler for Handler {
             .await
             .unwrap()
         {
-            if ["uwu", "big"].contains(&command.name.as_ref()) {
+            // if ["uwu", "big"].contains(&command.name.as_ref()) {
+            if ["big"].contains(&command.name.as_ref()) {
                 continue;
             }
             ApplicationCommand::delete_global_application_command(&ctx, command.id)
@@ -86,7 +90,7 @@ impl EventHandler for Handler {
         if let Interaction::ApplicationCommand(command) = interaction {
             let command_name = command.data.name.to_string();
             let result = match command_name.as_str() {
-                "uwu" => self.handle_uwuify(ctx, command).await,
+                // "uwu" => self.handle_uwuify(ctx, command).await,
                 "big" => self.handle_big(ctx, command).await,
                 _ => {
                     println!("unknown interaction");

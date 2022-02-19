@@ -182,6 +182,7 @@ async fn main() {
         })
         .group(&GENERAL_GROUP)
         .group(&CUTE_GROUP)
+        .group(&LANG_GROUP)
         .after(after)
         .help(&MY_HELP);
 

@@ -5,28 +5,39 @@ use serenity::http::Typing;
 use serenity::{model::channel::Message, prelude::Context};
 
 #[command]
-#[usage("[kotlin expression]")]
+#[usage("[C# expression]")]
 #[example("2 + 2")]
-#[description = r#"Run rust code in the following playground: https://code.sololearn.com/cUs4dp6t5jiq 
+#[description = r#"Run C# code in the following playground: https://code.sololearn.com/cUs4dp6t5jiq 
 Your code will be prefixed by a `p`.
-For example if you write `!kotlin 2 + 2` it'll actually execute:
-```kotlin
-fun main(args : Array<String>) {
-    println(2 + 2)
+For example if you write `!cs 2 + 2` it'll actually execute:
+```cs
+namespace Run
+{
+    class Hello {
+        static void Main(string[] args)
+        {
+            System.Console.WriteLine(2 + 2);
+        }
+    }
 }
 ```"#]
-pub async fn kotlin(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
+pub async fn cs(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
     let typing = Typing::start(ctx.http.clone(), *msg.channel_id.as_u64())?;
 
     let code = format!(
-        "fun main(args : Array<String>) {{
-    println({})
-}}
-",
+        "namespace Run
+{{
+    class Hello {{
+        static void Main(string[] args)
+        {{
+            System.Console.WriteLine({});
+        }}
+    }}
+}}",
         args.rest()
     );
 
-    let res = execute_kotlin(&code).await?;
+    let res = execute_cs(&code).await?;
     let res = format!("```\n{}\n```", res);
     msg.reply(&ctx, res).await?;
 
@@ -35,10 +46,10 @@ pub async fn kotlin(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
     Ok(())
 }
 
-pub async fn execute_kotlin(code: &str) -> Result<String> {
+pub async fn execute_cs(code: &str) -> Result<String> {
     let request = json!({
       "code": code,
-      "language": "kt",
+      "language": "cs",
       "input": "",
       "codeId": null
     });

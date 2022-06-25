@@ -10,6 +10,8 @@ mod react;
 mod roasted;
 mod roll;
 mod tg;
+
+#[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
 mod uwu;
 
 use big::*;

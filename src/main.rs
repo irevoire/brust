@@ -39,6 +39,7 @@ impl EventHandler for Handler {
     async fn ready(&self, ctx: Context, ready: Ready) {
         println!("{} is connected!", ready.user.name);
 
+        #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
         ApplicationCommand::create_global_application_command(&ctx, |command| {
             command
                 .name("uwu")
@@ -73,7 +74,13 @@ impl EventHandler for Handler {
             .await
             .unwrap()
         {
-            if ["uwu", "big"].contains(&command.name.as_ref()) {
+            if [
+                #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
+                "uwu",
+                "big",
+            ]
+            .contains(&command.name.as_ref())
+            {
                 continue;
             }
             ApplicationCommand::delete_global_application_command(&ctx, command.id)
@@ -86,6 +93,7 @@ impl EventHandler for Handler {
         if let Interaction::ApplicationCommand(command) = interaction {
             let command_name = command.data.name.to_string();
             let result = match command_name.as_str() {
+                #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
                 "uwu" => self.handle_uwuify(ctx, command).await,
                 "big" => self.handle_big(ctx, command).await,
                 _ => {

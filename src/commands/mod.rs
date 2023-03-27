@@ -1,5 +1,6 @@
 use serenity::framework::standard::macros::group;
 
+mod an;
 mod big;
 mod choose;
 mod cute;
@@ -14,6 +15,7 @@ mod tg;
 #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
 mod uwu;
 
+use an::*;
 use big::*;
 use choose::*;
 pub use cute::*;
@@ -26,5 +28,5 @@ use roll::*;
 pub use tg::*;
 
 #[group]
-#[commands(tg, mock, roasted, big, react, choose, roll, poll)]
+#[commands(an, tg, mock, roasted, big, react, choose, roll, poll)]
 struct General;

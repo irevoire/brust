@@ -6,6 +6,7 @@ mod choose;
 mod cute;
 mod lang;
 mod mock;
+mod numbat;
 mod poll;
 mod react;
 mod roasted;
@@ -21,6 +22,7 @@ use choose::*;
 pub use cute::*;
 pub use lang::*;
 use mock::*;
+use numbat::*;
 use poll::*;
 use react::*;
 use roasted::*;
@@ -28,5 +30,5 @@ use roll::*;
 pub use tg::*;
 
 #[group]
-#[commands(an, tg, mock, roasted, big, react, choose, roll, poll)]
+#[commands(an, tg, mock, roasted, big, react, choose, roll, poll, numbat)]
 struct General;

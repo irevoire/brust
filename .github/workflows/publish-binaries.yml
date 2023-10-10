@@ -12,7 +12,7 @@ jobs:
       matrix:
         os: [ubuntu-18.04]
         include:
-          - os: ubuntu-latest
+          - os: ubuntu-18.04
             artifact_name: brust
             asset_name: brust-linux-amd64
 

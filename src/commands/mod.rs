@@ -16,13 +16,13 @@ mod tg;
 #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
 mod uwu;
 
+use self::numbat::*;
 use an::*;
 use big::*;
 use choose::*;
 pub use cute::*;
 pub use lang::*;
 use mock::*;
-use numbat::*;
 use poll::*;
 use react::*;
 use roasted::*;

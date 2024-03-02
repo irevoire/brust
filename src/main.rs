@@ -89,20 +89,6 @@ impl EventHandler for Handler {
         }
     }
 
-    async fn message(&self, _ctx: Context, message: Message) {
-        let text = &message.content;
-
-        if text.contains("https://x.com/") || text.contains("https://twitter.com/") {
-            let ret = text.replace("https://x.com/", "https://fixvx.com/");
-            let ret = ret.replace("https://twitter.com/", "https://fixvx.com/");
-            let result = message.reply(_ctx, ret).await;
-
-            if let Err(e) = result {
-                println!("Unexpected error while replacing Twitter link {text}: {e}");
-            }
-        };
-    }
-
     async fn interaction_create(&self, ctx: Context, interaction: Interaction) {
         if let Interaction::ApplicationCommand(command) = interaction {
             let command_name = command.data.name.to_string();

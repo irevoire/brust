@@ -136,13 +136,15 @@ fn write_error(context: &numbat::Context, mut to: &mut String, error: impl Error
 
     let mut writer = DiagnosticToDiscord::new(&mut to);
 
-    codespan_reporting::term::emit(
-        &mut writer,
-        &config,
-        &context.resolver().files,
-        &error.diagnostic(),
-    )
-    .unwrap();
+    for diagnostic in error.diagnostics() {
+        codespan_reporting::term::emit(
+            &mut writer,
+            &config,
+            &context.resolver().files,
+            &diagnostic,
+        )
+        .unwrap();
+    }
 
     writeln!(to, "```").unwrap();
 }

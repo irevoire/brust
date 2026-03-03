@@ -12,10 +12,10 @@ kankyo = "0.3.0"
 miette = { version = "5.1.0", features = ["fancy"] }
 numbat = "1.6.3"
 rand = { version = "0.8.0", features = ["small_rng"] }
-reqwest = { version = "0.11.7", features = ["rustls-tls", "json"], default-features = false }
-select = "0.5.0"
-serde_json = "1.0.73"
-serenity = { version = "0.10.9", features = ["collector", "client", "gateway", "rustls_backend", "model", "unstable_discord_api"] }
+reqwest = { version = "0.13", features = ["rustls", "json"], default-features = false }
+select = "0.6"
+serde_json = "1.0"
+serenity = { version = "0.10", features = ["collector", "client", "gateway", "rustls_backend", "model", "unstable_discord_api"] }
 tokio = { version = "1", features = ["full"] }
 uwuify = "0.2.2"
 
